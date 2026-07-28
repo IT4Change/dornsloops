@@ -24,14 +24,28 @@ server {
         access_log off;
     }
 
+    # Browsers ask for this even though the site ships favicon.svg.
+    location = /favicon.ico {
+        access_log off;
+        log_not_found off;
+        return 204;
+    }
+
     # Prerendered pages: always revalidate, so a deploy is visible immediately.
     location / {
         add_header Cache-Control "no-cache";
         # /loop/6756581 is published as /loop/6756581/index.html
-        try_files $uri $uri/ $uri/index.html /404.html;
+        try_files $uri $uri/ $uri/index.html =404;
     }
 
+    # Served through error_page only. Falling back to /404.html inside the
+    # location above would loop endlessly whenever 404.html itself is
+    # unreadable — which is exactly what a checkout under /root causes.
     error_page 404 /404.html;
+
+    location = /404.html {
+        internal;
+    }
 
     # GitHub-Webhook
     location /hooks/ {

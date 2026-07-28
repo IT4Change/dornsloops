@@ -1,4 +1,22 @@
 #!/sbin/openrc-run
 
-command=webhook
-command_args="-hooks $PROJECT_ROOT/.github/webhooks/hooks.json &"
+name="webhook"
+description="GitHub webhook listener that deploys dornsloops"
+
+command="/usr/bin/webhook"
+# -ip binds to loopback only: nginx is the only thing that should reach it.
+command_args="-hooks $PROJECT_ROOT/.github/webhooks/hooks.json -ip 127.0.0.1 -port 9000"
+# Deployments run npm scripts from the repo — never as root.
+command_user="$DEPLOY_USER:$DEPLOY_USER"
+command_background=yes
+pidfile="/run/webhook.pid"
+output_log="/var/log/webhook.log"
+error_log="/var/log/webhook.log"
+
+depend() {
+    need net
+}
+
+start_pre() {
+    checkpath -f -m 0644 -o "$DEPLOY_USER:$DEPLOY_USER" /var/log/webhook.log
+}
