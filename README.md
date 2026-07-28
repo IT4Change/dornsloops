@@ -59,6 +59,26 @@ Detailseite zeigt sie vollständig. Die Filterleiste auf der Startseite blendet
 zwei Sorten aus: Tags, die den Medientyp beschreiben (`video`, `sound`, `loop`,
 …), und solche, die nur an einem einzigen Loop hängen.
 
+## Links teilen
+
+Jede Loop-Seite bringt Open-Graph-Metadaten mit: Titel, Poster als Vorschaubild
+und das Video selbst (`og:video`), sodass Discord & Co. den Loop direkt in der
+Vorschau abspielen statt nur ein Standbild zu zeigen. Beschreibung ist Dauer,
+Uploader und die ersten Tags.
+
+Das setzt **absolute** URLs voraus, die zur Build-Zeit feststehen müssen:
+
+```sh
+cp .env.example .env      # NUXT_PUBLIC_SITE_URL auf die echte Domain setzen
+npm run generate
+```
+
+Ohne gesetzte `NUXT_PUBLIC_SITE_URL` funktioniert die Seite normal, die
+Vorschau bleibt aber ohne Bild. `deploy.sh` warnt in dem Fall.
+
+Die Seite steht auf `noindex` — das hält Suchmaschinen fern, die Link-Vorschau
+der Messenger funktioniert davon unabhängig.
+
 ## Entwicklung
 
 ```sh

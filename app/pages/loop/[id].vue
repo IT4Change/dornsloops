@@ -13,7 +13,38 @@ watchEffect(() => {
 
 const around = computed(() => neighbours(Number(route.params.id)))
 
-useHead(() => ({ title: loop.value?.title }))
+const absolute = useAbsoluteUrl()
+
+/** Shown underneath the title in a link preview. */
+const summary = computed(() => {
+  if (!loop.value) return ''
+  const tags = loop.value.tags.slice(0, 4).join(', ')
+  const facts = `${formatDuration(loop.value.duration)} · ${loop.value.source.uploader}`
+  return tags ? `${facts} · ${tags}` : facts
+})
+
+useSeoMeta({
+  title: () => loop.value?.title ?? '',
+  description: summary,
+  ogTitle: () => loop.value?.title ?? '',
+  ogDescription: summary,
+  ogType: 'video.other',
+  ogUrl: () => absolute(`/loop/${loop.value?.id}`),
+  ogImage: () => absolute(loop.value?.poster ?? ''),
+  ogImageWidth: () => loop.value?.width,
+  ogImageHeight: () => loop.value?.height,
+  ogImageAlt: () => loop.value?.title ?? '',
+  // Lets Discord & co. play the loop right in the preview instead of showing
+  // a still image.
+  ogVideo: () => absolute(loop.value?.video ?? ''),
+  ogVideoType: 'video/mp4',
+  ogVideoWidth: () => loop.value?.width,
+  ogVideoHeight: () => loop.value?.height,
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => loop.value?.title ?? '',
+  twitterDescription: summary,
+  twitterImage: () => absolute(loop.value?.poster ?? ''),
+})
 
 /** Filtering from a detail page only makes sense back on the wall. */
 function filterByTag (tag: string) {

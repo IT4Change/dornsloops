@@ -47,10 +47,22 @@ Rollback ist ein Symlink-Wechsel:
 ln -sfn releases/20260728T1130 releases/current
 ```
 
-| Variable              | Default                  | Bedeutung                          |
-|-----------------------|--------------------------|------------------------------------|
-| `DORNSLOOPS_RELEASES` | `$PROJECT_ROOT/releases` | Zielverzeichnis der Releases       |
-| `DORNSLOOPS_KEEP`     | `3`                      | Anzahl aufbewahrter alter Releases |
+| Variable               | Default                  | Bedeutung                          |
+|------------------------|--------------------------|------------------------------------|
+| `DORNSLOOPS_RELEASES`  | `$PROJECT_ROOT/releases` | Zielverzeichnis der Releases       |
+| `DORNSLOOPS_KEEP`      | `3`                      | Anzahl aufbewahrter alter Releases |
+| `NUXT_PUBLIC_SITE_URL` | –                        | Absolute Basis-URL für Link-Vorschauen |
+
+`NUXT_PUBLIC_SITE_URL` wird zur Build-Zeit in die Seiten gebacken (Open Graph
+braucht absolute URLs für Vorschaubild und Video). Am einfachsten als `.env` im
+Projekt-Checkout, die Nuxt beim Build automatisch liest:
+
+```sh
+echo 'NUXT_PUBLIC_SITE_URL=https://<host>' > /var/www/dornsloops/.env
+```
+
+Fehlt sie, deployt `deploy.sh` trotzdem, warnt aber — die Link-Vorschau bleibt
+dann ohne Bild.
 
 ## Variablen
 

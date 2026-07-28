@@ -15,10 +15,21 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    public: {
+      // Absolute base URL of the deployment, e.g. https://loops.example.org.
+      // Link previews need absolute URLs for image and video, so this has to be
+      // set at build time — via .env or NUXT_PUBLIC_SITE_URL in the environment.
+      siteUrl: '',
+    },
+  },
+
   app: {
     head: {
       htmlAttrs: { lang: 'de' },
-      titleTemplate: title => (title ? `${title} · dornsloops` : 'dornsloops'),
+      // titleTemplate lives in app.vue — a function here would be dropped when
+      // the config is serialised.
+      title: 'dornsloops',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

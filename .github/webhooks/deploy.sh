@@ -34,6 +34,13 @@ git reset --hard origin/master
 
 # Build
 export TZ=UTC
+
+# Link previews embed absolute URLs, which are baked in at build time. Nuxt
+# picks this up from .env as well; the check only warns, it never blocks.
+if [ -z "${NUXT_PUBLIC_SITE_URL:-}" ] && ! grep -qs 'NUXT_PUBLIC_SITE_URL' .env; then
+  log "WARNING: NUXT_PUBLIC_SITE_URL is unset — link previews will have no image"
+fi
+
 log "installing dependencies"
 npm ci
 log "generating static site"

@@ -1,8 +1,25 @@
 <script setup lang="ts">
-const { loops, tags, activeTag, setTag } = useLoops()
+const { loops, allLoops, tags, activeTag, setTag } = useLoops()
 
 const totalMinutes = computed(() =>
   Math.round(loops.value.reduce((sum, loop) => sum + loop.duration, 0) / 60))
+
+const absolute = useAbsoluteUrl()
+const summary = computed(() => `${allLoops.length} Loops · ${totalMinutes.value} min`)
+
+useSeoMeta({
+  description: summary,
+  ogTitle: 'dornsloops',
+  ogDescription: summary,
+  ogType: 'website',
+  ogUrl: () => absolute('/'),
+  // The newest loop's poster stands in for the wall.
+  ogImage: () => absolute(allLoops[0]?.poster ?? ''),
+  twitterCard: 'summary_large_image',
+  twitterTitle: 'dornsloops',
+  twitterDescription: summary,
+  twitterImage: () => absolute(allLoops[0]?.poster ?? ''),
+})
 </script>
 
 <template>

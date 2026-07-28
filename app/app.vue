@@ -1,3 +1,11 @@
+<script setup lang="ts">
+// Pages set a bare title (which also feeds og:title); the site name is appended
+// here for the browser tab only.
+useHead({
+  titleTemplate: title => (title && title !== 'dornsloops' ? `${title} · dornsloops` : 'dornsloops'),
+})
+</script>
+
 <template>
   <div class="app">
     <NuxtPage />
