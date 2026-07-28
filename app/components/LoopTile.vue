@@ -1,71 +1,32 @@
 <script setup lang="ts">
 import type { Loop } from '~/types/loop'
 
-const props = defineProps<{ loop: Loop }>()
-
-const root = ref<HTMLElement | null>(null)
-const video = ref<HTMLVideoElement | null>(null)
-
-/** The file is only attached once the tile approaches the viewport. */
-const loaded = ref(false)
-const playing = ref(false)
-
-let observer: IntersectionObserver | null = null
-
-function play () {
-  video.value?.play().then(() => { playing.value = true }).catch(() => {
-    // Autoplay can still be refused (e.g. battery saver); the poster stays up.
-  })
-}
-
-function pause () {
-  video.value?.pause()
-  playing.value = false
-}
-
-onMounted(() => {
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  observer = new IntersectionObserver(([entry]) => {
-    if (entry?.isIntersecting) {
-      loaded.value = true
-      if (!reducedMotion) nextTick(play)
-    } else {
-      pause()
-    }
-  }, { rootMargin: '300px 0px' })
-
-  if (root.value) observer.observe(root.value)
-})
-
-onBeforeUnmount(() => observer?.disconnect())
+// The wall shows posters only — playing 19 muted videos at once pulled the
+// whole library over the wire on every visit. The video starts on the detail
+// page.
+defineProps<{ loop: Loop }>()
 </script>
 
 <template>
-  <article ref="root" class="tile" :style="{ aspectRatio: `${loop.width} / ${loop.height}` }">
+  <article class="tile" :style="{ aspectRatio: `${loop.width} / ${loop.height}` }">
     <NuxtLink class="tile__hit" :to="`/loop/${loop.id}`">
       <span class="visually-hidden">{{ loop.title }} abspielen</span>
     </NuxtLink>
 
-    <img v-show="!playing" class="tile__poster" :src="loop.poster" :alt="loop.title" loading="lazy">
+    <img
+      class="tile__poster"
+      :src="loop.poster"
+      :alt="loop.title"
+      :width="loop.width"
+      :height="loop.height"
+      loading="lazy"
+      decoding="async"
+    >
 
-    <video
-      v-if="loaded"
-      ref="video"
-      class="tile__video"
-      :src="loop.video"
-      :poster="loop.poster"
-      muted
-      loop
-      playsinline
-      preload="metadata"
-      disablepictureinpicture
-      tabindex="-1"
-    />
+    <span class="tile__duration">{{ formatDuration(loop.duration) }}</span>
 
     <footer class="tile__meta">
       <span class="tile__title">{{ loop.title }}</span>
-      <span class="tile__duration">{{ formatDuration(loop.duration) }}</span>
     </footer>
   </article>
 </template>
@@ -88,30 +49,34 @@ onBeforeUnmount(() => observer?.disconnect())
 
 .tile__hit {
   position: absolute;
-  inset: 0;
   z-index: 2;
+  inset: 0;
 }
 
-.tile__poster,
-.tile__video {
+.tile__poster {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.tile__poster {
+/* Stands in for the missing motion: marks the tile as a video at a glance. */
+.tile__duration {
   position: absolute;
-  inset: 0;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 70%);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  line-height: 1.5;
 }
 
 .tile__meta {
   position: absolute;
   inset: auto 0 0;
-  display: flex;
-  gap: 0.5rem;
-  align-items: baseline;
-  justify-content: space-between;
   padding: 1.75rem 0.6rem 0.5rem;
   background: linear-gradient(transparent, rgb(0 0 0 / 85%));
   opacity: 0;
@@ -125,15 +90,12 @@ onBeforeUnmount(() => observer?.disconnect())
 }
 
 .tile__title {
+  display: block;
+  /* Keep clear of the duration badge. */
+  padding-right: 3rem;
   overflow: hidden;
   font-size: 0.85rem;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.tile__duration {
-  color: var(--fg-muted);
-  font-variant-numeric: tabular-nums;
-  font-size: 0.8rem;
 }
 </style>
