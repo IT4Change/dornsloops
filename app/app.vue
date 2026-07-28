@@ -5,8 +5,7 @@
     <footer class="footer">
       <p>
         Alle Loops stammen von ihren jeweiligen Urhebern; die Quelle ist an jedem
-        Loop verlinkt. Kein kommerzielles Angebot — bei Fragen oder einer Bitte um
-        Entfernung genügt eine Nachricht.
+        Loop verlinkt.
       </p>
     </footer>
   </div>
