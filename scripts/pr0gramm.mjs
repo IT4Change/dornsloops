@@ -56,10 +56,14 @@ export async function fetchItem (id) {
   return item
 }
 
-export async function fetchTags (id, minConfidence = 0.3) {
+/**
+ * The API only hands out tags that are publicly visible on the post, so they
+ * are all kept — just ordered by confidence, which puts the most agreed-upon
+ * tag first.
+ */
+export async function fetchTags (id) {
   const body = await apiGet('items/info', { itemId: id })
   return (body.tags ?? [])
-    .filter(tag => tag.confidence >= minConfidence)
     .sort((a, b) => b.confidence - a.confidence)
     .map(tag => tag.tag)
 }

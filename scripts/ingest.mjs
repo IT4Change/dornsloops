@@ -40,16 +40,12 @@ const DATA_FILE = join(ROOT, 'content', 'loops.json')
 const MEDIA_DIR = join(ROOT, 'public', 'loops')
 const TMP_DIR = join(ROOT, 'node_modules', '.cache', 'dornsloops')
 
-/** Fields the ingest owns; everything else in a record survives a re-import. */
-const DERIVED_FIELDS = [
-  'source', 'width', 'height', 'duration', 'video', 'poster', 'bytes', 'variant',
-]
-
 function parseArgs (argv) {
   const options = {
     inputs: [],
     file: null,
     force: false,
+    metadataOnly: false,
     maxHeight: 720,
     maxSizeMb: 25,
     reencode: 'auto',
@@ -60,6 +56,7 @@ function parseArgs (argv) {
     switch (arg) {
       case '--file': options.file = argv[++i]; break
       case '--force': options.force = true; break
+      case '--metadata-only': options.metadataOnly = true; break
       case '--max-height': options.maxHeight = Number(argv[++i]); break
       case '--max-size': options.maxSizeMb = Number(argv[++i]); break
       case '--reencode': options.reencode = argv[++i]; break
@@ -168,6 +165,17 @@ async function extractPoster (video, output, duration) {
   ])
 }
 
+function describeSource (id, item) {
+  return {
+    platform: 'pr0gramm',
+    url: itemUrl(id),
+    uploader: item.user,
+    postedAt: new Date(item.created * 1000).toISOString(),
+    // Uploaders sometimes credit an original source; keep it if present.
+    original: item.source || null,
+  }
+}
+
 function needsTranscode (variant, mode, { maxHeight, maxBytes }) {
   if (mode === 'always') return true
   if (mode === 'never') return false
@@ -188,6 +196,20 @@ async function ingestOne (input, { loops, options }) {
   const [item, tags] = await Promise.all([fetchItem(id), fetchTags(id)])
   if (!item.audio) {
     console.log(`  ${id}  has no audio track — importing anyway`)
+  }
+
+  // Tags and credits change over time; refreshing them should not mean
+  // re-downloading and re-encoding hundreds of megabytes.
+  if (existing && options.metadataOnly) {
+    existing.tags = tags
+    existing.source = describeSource(id, item)
+    console.log(`  ${id}  metadata refreshed (${tags.length} tags)`)
+    return { status: 'refreshed' }
+  }
+
+  if (!existing && options.metadataOnly) {
+    console.log(`  ${id}  not present yet — --metadata-only cannot add it, skipping`)
+    return { status: 'skipped' }
   }
 
   const maxBytes = options.maxSizeMb * 1024 * 1024
@@ -222,14 +244,7 @@ async function ingestOne (input, { loops, options }) {
   const { size } = await import('node:fs/promises').then(fs => fs.stat(videoPath))
 
   const derived = {
-    source: {
-      platform: 'pr0gramm',
-      url: itemUrl(id),
-      uploader: item.user,
-      postedAt: new Date(item.created * 1000).toISOString(),
-      // Uploaders sometimes credit an original source; keep it if present.
-      original: item.source || null,
-    },
+    source: describeSource(id, item),
     width: probed.width,
     height: probed.height,
     duration: probed.duration,

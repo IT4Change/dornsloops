@@ -19,15 +19,24 @@ zieht ein Poster-Standbild und schreibt den Datensatz nach
 `public/loops/<id>.mp4` bzw. `.jpg`.
 
 Bereits vorhandene Loops werden übersprungen. `--force` lädt sie neu und lässt
-dabei handgepflegte Felder (`title`, `tags`, `featured`) unangetastet.
+dabei die kuratierten Felder (`title`, `featured`) unangetastet.
 
 | Option | Default | Wirkung |
 | --- | --- | --- |
 | `--file <pfad>` | – | IDs/URLs zeilenweise aus einer Datei (`#` = Kommentar) |
 | `--force` | aus | vorhandene Einträge neu laden |
+| `--metadata-only` | aus | nur Tags und Quellenangaben nachziehen, Dateien nicht anfassen |
 | `--max-height <n>` | `720` | oberhalb wird herunterskaliert |
 | `--max-size <mb>` | `25` | Größenbudget bei der Variantenwahl |
 | `--reencode <modus>` | `auto` | `auto` \| `always` \| `never` |
+
+Tags ändern sich auf pr0gramm laufend. `--force --metadata-only` holt sie für
+alle Einträge neu, ohne die Mediendateien anzurühren:
+
+```sh
+node -e "console.log(require('./content/loops.json').map(l => l.id).join('\n'))" > /tmp/ids
+npm run add -- --force --metadata-only --file /tmp/ids
+```
 
 `auto` transkodiert nur, wenn die Quelle kein h264 ist, zu hoch auflöst oder das
 Größenbudget reißt — sonst wird die Originaldatei unverändert übernommen.
@@ -44,6 +53,12 @@ pr0gramm kennt keine Titel. Das Script nimmt den Tag mit der höchsten Confidenc
 `title` in `content/loops.json` von Hand ändern; ein späteres `--force`
 überschreibt ihn nicht.
 
+Gespeichert werden alle Tags, die die API zu einem Post herausgibt — also genau
+die, die auch auf pr0gramm sichtbar sind — sortiert nach Confidence. Die
+Detailseite zeigt sie vollständig. Die Filterleiste auf der Startseite blendet
+zwei Sorten aus: Tags, die den Medientyp beschreiben (`video`, `sound`, `loop`,
+…), und solche, die nur an einem einzigen Loop hängen.
+
 ## Entwicklung
 
 ```sh
@@ -58,24 +73,23 @@ Verzeichnis kann direkt von nginx, GitHub Pages o. ä. ausgeliefert werden.
 ## Bedienung
 
 Die Startseite ist eine Masonry-Wand mit stummen Vorschauen (Videos werden erst
-geladen, wenn sie in die Nähe des Viewports kommen). Ein Klick öffnet den Player
-mit Ton und spielt ab dort als Playlist weiter.
+geladen, wenn sie in die Nähe des Viewports kommen). Ein Klick führt auf die
+Detailseite des Loops: `/loop/7077671` — eine echte, prerenderte URL, direkt
+verlinkbar. Dort läuft der Loop mit Ton, endlos, und daneben stehen alle Tags,
+die Quelle, der Uploader und das Upload-Datum.
 
 | Taste | Funktion |
 | --- | --- |
 | `→` / `←` | nächster / vorheriger Loop |
 | `Leertaste` | Pause / Weiter |
 | `M` | stumm schalten |
-| `Esc` | Player schließen |
+| `Esc` | zurück zur Wand |
 
-Über `⟳` stellt man ein, nach wie vielen Wiederholungen automatisch weiter-
-geschaltet wird (`Endlos` schaltet die Automatik ab). Lautstärke, Shuffle und
-diese Einstellung überleben im `localStorage`.
+Vor und zurück bleibt innerhalb eines aktiven Tag-Filters und läuft am Ende der
+Liste wieder von vorn. Lautstärke und Stummschaltung überleben im
+`localStorage`.
 
-Der offene Loop steht als Query-Parameter in der URL (`/?loop=7077671`) und ist
-damit direkt verlinkbar; der Zurück-Button schließt den Player. Ein URL-Hash
-wäre naheliegender, taugt hier aber nicht: Nuxts Router verwirft ihn beim
-initialen Laden, der Deep-Link käme also nie an.
+Ein Klick auf ein Tag auf der Detailseite filtert die Wand danach.
 
 ## Rechtliches
 

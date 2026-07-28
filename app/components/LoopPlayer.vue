@@ -1,19 +1,14 @@
 <script setup lang="ts">
 import type { Loop } from '~/types/loop'
 
-const props = defineProps<{ loop: Loop; position: number; total: number }>()
-const emit = defineEmits<{ close: []; next: []; previous: [] }>()
+const props = defineProps<{ loop: Loop }>()
 
-const { prefs, persistPrefs } = useLoops()
+const { prefs, persistPrefs, loadPrefs } = useLoops()
 
 const video = ref<HTMLVideoElement | null>(null)
 const progress = ref(0)
-const repeats = ref(0)
 /** Set when the browser refused to start playback with sound. */
 const blocked = ref(false)
-
-const repeatLabel = computed(() =>
-  prefs.value.repeats === 0 ? 'Endlos' : `${prefs.value.repeats}×`)
 
 function applyPrefs () {
   const element = video.value
@@ -27,7 +22,6 @@ async function start () {
   if (!element) return
 
   applyPrefs()
-  repeats.value = 0
   try {
     await element.play()
     blocked.value = false
@@ -36,20 +30,6 @@ async function start () {
     element.muted = true
     blocked.value = true
     await element.play().catch(() => {})
-  }
-}
-
-function onEnded () {
-  repeats.value++
-  const limit = prefs.value.repeats
-  if (limit > 0 && repeats.value >= limit) {
-    emit('next')
-    return
-  }
-  const element = video.value
-  if (element) {
-    element.currentTime = 0
-    element.play().catch(() => {})
   }
 }
 
@@ -81,13 +61,6 @@ function setVolume (event: Event) {
   persistPrefs()
 }
 
-function cycleRepeats () {
-  const steps = [1, 2, 3, 5, 0]
-  const index = steps.indexOf(prefs.value.repeats)
-  prefs.value.repeats = steps[(index + 1) % steps.length]!
-  persistPrefs()
-}
-
 function togglePlay () {
   const element = video.value
   if (!element) return
@@ -98,141 +71,82 @@ function onKeydown (event: KeyboardEvent) {
   const target = event.target as HTMLElement
   if (target.tagName === 'INPUT') return
 
-  const actions: Record<string, () => void> = {
-    Escape: () => emit('close'),
-    ArrowRight: () => emit('next'),
-    ArrowLeft: () => emit('previous'),
-    ' ': togglePlay,
-    m: toggleMute,
+  if (event.key === ' ') {
+    event.preventDefault()
+    togglePlay()
+  } else if (event.key === 'm') {
+    event.preventDefault()
+    toggleMute()
   }
-  const action = actions[event.key]
-  if (!action) return
-
-  event.preventDefault()
-  action()
 }
 
-// Switching loops keeps the overlay mounted, so restart explicitly.
+// Navigating between loops keeps this component mounted, so restart explicitly.
 watch(() => props.loop.id, () => nextTick(start))
 
 onMounted(() => {
+  loadPrefs()
   start()
   window.addEventListener('keydown', onKeydown)
-  document.body.style.overflow = 'hidden'
 })
 
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', onKeydown)
-  document.body.style.overflow = ''
-})
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <div class="player" role="dialog" aria-modal="true" :aria-label="loop.title">
-    <div class="player__backdrop" @click="emit('close')" />
+  <div class="player">
+    <video
+      ref="video"
+      class="player__video"
+      :src="loop.video"
+      :poster="loop.poster"
+      autoplay
+      loop
+      playsinline
+      @timeupdate="onTimeUpdate"
+      @click="togglePlay"
+    />
 
-    <button class="player__nav player__nav--prev button" type="button" title="Vorheriger Loop (←)" @click="emit('previous')">
-      ◀
-    </button>
+    <div class="player__progress" @click="seek">
+      <div class="player__progress-fill" :style="{ transform: `scaleX(${progress})` }" />
+    </div>
 
-    <div class="player__stage">
-      <video
-        ref="video"
-        class="player__video"
-        :src="loop.video"
-        :poster="loop.poster"
-        autoplay
-        playsinline
-        @ended="onEnded"
-        @timeupdate="onTimeUpdate"
-        @click="togglePlay"
-      />
-
-      <div class="player__progress" @click="seek">
-        <div class="player__progress-fill" :style="{ transform: `scaleX(${progress})` }" />
-      </div>
-
-      <div class="player__bar">
-        <div class="player__info">
-          <h2 class="player__title">{{ loop.title }}</h2>
-          <p class="player__source">
-            <a :href="loop.source.url" target="_blank" rel="noopener noreferrer">
-              {{ loop.source.platform }}/{{ loop.id }} ↗
-            </a>
-            <span>· hochgeladen von {{ loop.source.uploader }}</span>
-            <span class="player__count">· {{ position }} / {{ total }}</span>
-          </p>
-        </div>
-
-        <div class="player__controls">
-          <button class="button" type="button" :title="prefs.muted ? 'Ton an (M)' : 'Stumm (M)'" @click="toggleMute">
-            {{ prefs.muted ? '🔇' : '🔊' }}
-          </button>
-          <input
-            class="player__volume"
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            :value="prefs.volume"
-            aria-label="Lautstärke"
-            @input="setVolume"
-          >
-          <button class="button" type="button" title="Wiederholungen bis zum nächsten Loop" @click="cycleRepeats">
-            ⟳ {{ repeatLabel }}
-          </button>
-          <button class="button" type="button" title="Schließen (Esc)" @click="emit('close')">
-            ✕
-          </button>
-        </div>
-      </div>
-
+    <div class="player__controls">
+      <button class="button" type="button" :title="prefs.muted ? 'Ton an (M)' : 'Stumm (M)'" @click="toggleMute">
+        {{ prefs.muted ? '🔇' : '🔊' }}
+      </button>
+      <input
+        class="player__volume"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        :value="prefs.volume"
+        aria-label="Lautstärke"
+        @input="setVolume"
+      >
       <p v-if="blocked" class="player__blocked">
         Der Browser hat den Ton blockiert — auf 🔊 tippen.
       </p>
     </div>
-
-    <button class="player__nav player__nav--next button" type="button" title="Nächster Loop (→)" @click="emit('next')">
-      ▶
-    </button>
   </div>
 </template>
 
 <style scoped>
 .player {
-  position: fixed;
-  z-index: 20;
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  inset: 0;
-}
-
-.player__backdrop {
-  position: absolute;
-  background: rgb(4 4 8 / 92%);
-  inset: 0;
-}
-
-.player__stage {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  /* Shrink to the video's own width so the meta bar stays flush with it,
+  /* Shrink to the video's own width so the controls stay flush with it,
      even for portrait loops. */
   width: fit-content;
-  min-width: min(100%, 26rem);
-  max-width: min(100%, 1100px);
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .player__video {
   width: auto;
   max-width: 100%;
-  max-height: calc(100vh - 9rem);
+  max-height: calc(100vh - 12rem);
   border-radius: var(--radius);
   background: #000;
   object-fit: contain;
@@ -253,75 +167,20 @@ onBeforeUnmount(() => {
   transform-origin: left;
 }
 
-.player__bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.player__title {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.player__source {
-  margin: 0.15rem 0 0;
-  color: var(--fg-muted);
-  font-size: 0.85rem;
-}
-
-.player__source a {
-  text-decoration: none;
-}
-
-.player__source a:hover {
-  text-decoration: underline;
-}
-
-.player__count {
-  font-variant-numeric: tabular-nums;
-}
-
 .player__controls {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.5rem;
   align-items: center;
 }
 
 .player__volume {
-  width: 5rem;
+  width: 6rem;
   accent-color: var(--accent);
-}
-
-.player__nav {
-  position: relative;
-  z-index: 1;
-  flex: none;
-  padding: 1rem 0.7rem;
 }
 
 .player__blocked {
   margin: 0;
   color: var(--fg-muted);
   font-size: 0.85rem;
-  text-align: center;
-}
-
-@media (width < 720px) {
-  .player__nav {
-    position: absolute;
-    top: 50%;
-    translate: 0 -50%;
-  }
-
-  .player__nav--prev {
-    left: 0.5rem;
-  }
-
-  .player__nav--next {
-    right: 0.5rem;
-  }
 }
 </style>

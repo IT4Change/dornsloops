@@ -2,7 +2,6 @@
 import type { Loop } from '~/types/loop'
 
 const props = defineProps<{ loop: Loop }>()
-defineEmits<{ open: [id: number] }>()
 
 const root = ref<HTMLElement | null>(null)
 const video = ref<HTMLVideoElement | null>(null)
@@ -44,9 +43,9 @@ onBeforeUnmount(() => observer?.disconnect())
 
 <template>
   <article ref="root" class="tile" :style="{ aspectRatio: `${loop.width} / ${loop.height}` }">
-    <button class="tile__hit" type="button" @click="$emit('open', loop.id)">
+    <NuxtLink class="tile__hit" :to="`/loop/${loop.id}`">
       <span class="visually-hidden">{{ loop.title }} abspielen</span>
-    </button>
+    </NuxtLink>
 
     <img v-show="!playing" class="tile__poster" :src="loop.poster" :alt="loop.title" loading="lazy">
 
