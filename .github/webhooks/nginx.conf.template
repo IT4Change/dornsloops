@@ -1,0 +1,49 @@
+server {
+    listen 80;
+    server_name $HOST;
+
+    # Serve the release the deploy script last flipped `current` to.
+    root $RELEASES_DIR/current;
+    index index.html;
+
+    # nginx resolves the symlink once per request, so a deploy takes effect
+    # without a reload.
+    disable_symlinks off;
+
+    # Loop media. The filename carries the pr0gramm item id and its contents
+    # never change, so it can be cached hard. Range requests (on by default)
+    # are what makes seeking in the player work.
+    location /loops/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+
+    # Hashed build assets — safe to cache forever.
+    location /_nuxt/ {
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        access_log off;
+    }
+
+    # Prerendered pages: always revalidate, so a deploy is visible immediately.
+    location / {
+        add_header Cache-Control "no-cache";
+        # /loop/6756581 is published as /loop/6756581/index.html
+        try_files $uri $uri/ $uri/index.html /404.html;
+    }
+
+    error_page 404 /404.html;
+
+    # GitHub-Webhook
+    location /hooks/ {
+        proxy_http_version 1.1;
+        proxy_set_header   X-Forwarded-For $remote_addr;
+        proxy_set_header   X-Real-IP  $remote_addr;
+        proxy_set_header   Host $host;
+        proxy_pass         http://127.0.0.1:9000/hooks/;
+        proxy_redirect     off;
+    }
+
+    # GitHub-Payloads können groß werden -- verhindert 413-Fehler
+    client_body_buffer_size 10M;
+    client_max_body_size    10M;
+}

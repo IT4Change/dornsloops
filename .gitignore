@@ -3,6 +3,9 @@ node_modules
 .output
 .data
 dist
+# Published builds on the server — must stay untracked, or `git reset --hard`
+# during a deploy would clobber the live release.
+releases
 *.log
 .DS_Store
 .env
