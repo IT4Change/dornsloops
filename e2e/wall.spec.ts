@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 
+import { waitForHydration } from './helpers'
 import { FIRST, LOOPS } from './loops'
 
 test.describe('the wall', () => {
@@ -22,6 +23,8 @@ test.describe('the wall', () => {
 
   test('narrows to a tag and back out again', async ({ page }) => {
     await page.goto('/')
+    // The tag bar is a row of click handlers; before hydration the press goes nowhere.
+    await waitForHydration(page)
     const tag = page.locator('.tags__item').first()
     const name = (await tag.textContent())!.trim().replace(/\s+\d+$/, '')
     const expected = LOOPS.filter((loop) => loop.tags.includes(name)).length

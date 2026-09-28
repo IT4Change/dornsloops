@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test'
 
+import { openLoop, waitForHydration } from './helpers'
 import { FIRST, LAST, LOOPS, SECOND } from './loops'
 
 const detail = (id: number) => `/loop/${String(id)}`
@@ -44,7 +45,9 @@ test.describe('the upload date', () => {
     const html = await (await request.get(detail(SECOND.id))).text()
     const prerendered = /Hochgeladen am<\/dt>\s*<dd[^>]*>([^<]*)<\/dd>/.exec(html)?.[1]?.trim()
 
-    await page.goto(detail(SECOND.id))
+    // Without the wait the "hydrated" value would still be the prerendered markup and the
+    // comparison would hold for the wrong reason.
+    await openLoop(page, SECOND.id)
     const hydrated = (await page.locator('dd').nth(2).textContent())?.trim()
 
     expect(prerendered).toBe(berlin)
@@ -54,7 +57,7 @@ test.describe('the upload date', () => {
 
 test.describe('stepping through the wall', () => {
   test('→ and ← walk the queue', async ({ page }) => {
-    await page.goto(detail(FIRST.id))
+    await openLoop(page, FIRST.id)
 
     await page.keyboard.press('ArrowRight')
 
@@ -66,7 +69,7 @@ test.describe('stepping through the wall', () => {
   })
 
   test('wraps around at the front of the queue', async ({ page }) => {
-    await page.goto(detail(FIRST.id))
+    await openLoop(page, FIRST.id)
 
     await page.keyboard.press('ArrowLeft')
 
@@ -74,7 +77,7 @@ test.describe('stepping through the wall', () => {
   })
 
   test('Esc goes back to the wall', async ({ page }) => {
-    await page.goto(detail(SECOND.id))
+    await openLoop(page, SECOND.id)
 
     await page.keyboard.press('Escape')
 
@@ -85,7 +88,7 @@ test.describe('stepping through the wall', () => {
   test('a tag filters the wall and goes back there', async ({ page }) => {
     const tag = SECOND.tags[0]!
     const expected = LOOPS.filter((loop) => loop.tags.includes(tag)).length
-    await page.goto(detail(SECOND.id))
+    await openLoop(page, SECOND.id)
 
     await page.locator('.detail__tag').first().click()
 
@@ -106,7 +109,7 @@ test.describe('the player', () => {
   })
 
   test('the mute button silences the video and the choice survives a reload', async ({ page }) => {
-    await page.goto(detail(SECOND.id))
+    await openLoop(page, SECOND.id)
     const mute = page.getByRole('button', { name: 'Stumm' })
 
     await mute.click()
@@ -117,6 +120,7 @@ test.describe('the player', () => {
       .toBe(true)
 
     await page.reload()
+    await waitForHydration(page)
 
     await expect(page.getByRole('button', { name: 'Ton an' })).toBeVisible()
     await expect
@@ -125,7 +129,7 @@ test.describe('the player', () => {
   })
 
   test('M does the same as the button', async ({ page }) => {
-    await page.goto(detail(SECOND.id))
+    await openLoop(page, SECOND.id)
 
     await page.keyboard.press('m')
 
@@ -133,7 +137,7 @@ test.describe('the player', () => {
   })
 
   test('the space bar pauses and resumes', async ({ page }) => {
-    await page.goto(detail(SECOND.id))
+    await openLoop(page, SECOND.id)
 
     await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible()
 
@@ -147,7 +151,7 @@ test.describe('the player', () => {
   })
 
   test('the progress bar is reachable with Tab and seeks from the keyboard', async ({ page }) => {
-    await page.goto(detail(SECOND.id))
+    await openLoop(page, SECOND.id)
     const slider = page.getByRole('slider', { name: 'Position im Loop' })
     await slider.focus()
 

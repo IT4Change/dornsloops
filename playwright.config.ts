@@ -14,6 +14,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
+  // Retries stay, for the trace they record — but a test that only passes on the second go
+  // must not leave a green run behind. The first CI run of this suite reported "25 passed"
+  // next to a failure and went through, and a flake nobody is shown is a flake nobody fixes.
+  failOnFlakyTests: Boolean(process.env.CI),
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
 

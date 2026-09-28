@@ -147,6 +147,14 @@ könnte einen laufenden Dev-Server nicht von seinem eigenen unterscheiden — di
 Suite liefe dann gegen einen Build, den sie nie gemacht hat. Mit `E2E_PORT` zu
 überschreiben.
 
+Alles, was klickt oder tippt, wartet vorher über `e2e/helpers.ts` auf die
+Hydration — die Handler hängen an `onMounted`, und ein Tastendruck davor geht
+spurlos verloren. Gewartet wird auf ein Messbares (`__vue_app__`, und beim
+Player der Fortschrittsbalken, den der Build als `aria-valuemax="0"` ausliefert),
+nie auf eine feste Zeitspanne. In der CI laufen Retries, aber ein Test, der erst
+beim zweiten Anlauf durchgeht, macht den Lauf trotzdem rot (`failOnFlakyTests`) —
+ein Flake, den niemand zu sehen bekommt, wird nie behoben.
+
 ```sh
 npx playwright install chromium   # einmalig
 npm run test:e2e
