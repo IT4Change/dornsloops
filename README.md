@@ -90,6 +90,27 @@ npm run generate   # statischer Build nach .output/public
 `npm run generate` erzeugt eine rein statische Seite — kein Server nötig, das
 Verzeichnis kann direkt von nginx, GitHub Pages o. ä. ausgeliefert werden.
 
+Die Node-Version steht in [`.tool-versions`](.tool-versions) und gilt lokal wie
+in der CI.
+
+## Prüfen
+
+```sh
+npm run test:lint            # eslint + typecheck, beides muss still bleiben
+npm run test:lint:eslint     # eslint --max-warnings 0
+npm run test:lint:typecheck  # nuxt typecheck (vue-tsc, auch in .vue)
+```
+
+Geprüft wird gegen [`eslint-config-it4c`](https://github.com/IT4Change/eslint-config-it4c);
+Prettier läuft als Regel darin mit, es gibt also keinen zweiten Formatierungslauf.
+Was dieses Projekt abweichend regelt, steht mit Begründung in
+[`eslint.config.ts`](eslint.config.ts) — jede Abweichung ist dort eine benannte
+Entscheidung, keine stillschweigende. `npm run test:lint:eslint -- --fix` räumt
+das Formatierbare selbst auf.
+
+Dieselben Skripte laufen bei jedem Push und PR über
+[`.github/workflows/app.test.lint.code.yml`](.github/workflows/app.test.lint.code.yml).
+
 ## Bedienung
 
 Die Startseite ist eine Masonry-Wand mit stummen Vorschauen (Videos werden erst

@@ -1,25 +1,26 @@
 <script setup lang="ts">
-const { loops, allLoops, tags, activeTag, setTag } = useLoops()
+  const { loops, allLoops, tags, activeTag, setTag } = useLoops()
 
-const totalMinutes = computed(() =>
-  Math.round(loops.value.reduce((sum, loop) => sum + loop.duration, 0) / 60))
+  const totalMinutes = computed(() =>
+    Math.round(loops.value.reduce((sum, loop) => sum + loop.duration, 0) / 60),
+  )
 
-const absolute = useAbsoluteUrl()
-const summary = computed(() => `${allLoops.length} Loops · ${totalMinutes.value} min`)
+  const absolute = useAbsoluteUrl()
+  const summary = computed(() => `${allLoops.length} Loops · ${totalMinutes.value} min`)
 
-useSeoMeta({
-  description: summary,
-  ogTitle: 'dornsloops',
-  ogDescription: summary,
-  ogType: 'website',
-  ogUrl: () => absolute('/'),
-  // The newest loop's poster stands in for the wall.
-  ogImage: () => absolute(allLoops[0]?.poster ?? ''),
-  twitterCard: 'summary_large_image',
-  twitterTitle: 'dornsloops',
-  twitterDescription: summary,
-  twitterImage: () => absolute(allLoops[0]?.poster ?? ''),
-})
+  useSeoMeta({
+    description: summary,
+    ogTitle: 'dornsloops',
+    ogDescription: summary,
+    ogType: 'website',
+    ogUrl: () => absolute('/'),
+    // The newest loop's poster stands in for the wall.
+    ogImage: () => absolute(allLoops[0]?.poster ?? ''),
+    twitterCard: 'summary_large_image',
+    twitterTitle: 'dornsloops',
+    twitterDescription: summary,
+    twitterImage: () => absolute(allLoops[0]?.poster ?? ''),
+  })
 </script>
 
 <template>
@@ -53,65 +54,65 @@ useSeoMeta({
 </template>
 
 <style scoped>
-.page {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.25rem;
-}
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.25rem;
+  }
 
-.header {
-  margin-bottom: 1rem;
-}
+  .header {
+    margin-bottom: 1rem;
+  }
 
-.header__title {
-  margin: 0;
-  font-size: 1.35rem;
-  letter-spacing: -0.01em;
-}
+  .header__title {
+    margin: 0;
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
+  }
 
-.header__subtitle {
-  margin: 0.1rem 0 0;
-  color: var(--fg-muted);
-  font-size: 0.85rem;
-}
+  .header__subtitle {
+    margin: 0.1rem 0 0;
+    color: var(--fg-muted);
+    font-size: 0.85rem;
+  }
 
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 1.25rem;
-}
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 1.25rem;
+  }
 
-.tags__item {
-  padding: 0.25rem 0.6rem;
-  font-size: 0.8rem;
-}
+  .tags__item {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.8rem;
+  }
 
-.tags__count {
-  color: var(--fg-muted);
-  font-variant-numeric: tabular-nums;
-}
+  .tags__count {
+    color: var(--fg-muted);
+    font-variant-numeric: tabular-nums;
+  }
 
-.grid {
-  columns: 4 260px;
-  gap: 0.75rem;
-}
+  .grid {
+    columns: 4 260px;
+    gap: 0.75rem;
+  }
 
-.grid > * {
-  margin-bottom: 0.75rem;
-  break-inside: avoid;
-}
+  .grid > * {
+    margin-bottom: 0.75rem;
+    break-inside: avoid;
+  }
 
-.empty {
-  padding: 4rem 0;
-  color: var(--fg-muted);
-  text-align: center;
-}
+  .empty {
+    padding: 4rem 0;
+    color: var(--fg-muted);
+    text-align: center;
+  }
 
-code {
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-  background: var(--bg-raised);
-  font-size: 0.9em;
-}
+  code {
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: var(--bg-raised);
+    font-size: 0.9em;
+  }
 </style>

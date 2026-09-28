@@ -1,0 +1,22 @@
+name: test:lint
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: null
+
+jobs:
+  lint:
+    name: eslint + typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+      # `postinstall` runs `nuxt prepare`, and without the generated types under `.nuxt`
+      # neither the typecheck nor the import resolver has anything to work with.
+      - run: npm ci
+      - run: npm run test:lint

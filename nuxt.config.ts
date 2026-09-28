@@ -1,11 +1,13 @@
 import { readFileSync } from 'node:fs'
 
-interface LoopEntry { id: number }
+interface LoopEntry {
+  id: number
+}
 
 // Every loop gets its own prerendered page, so the deep links are real URLs.
-const loops: LoopEntry[] = JSON.parse(
+const loops = JSON.parse(
   readFileSync(new URL('./content/loops.json', import.meta.url), 'utf8'),
-)
+) as LoopEntry[]
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -45,7 +47,7 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       crawlLinks: true,
-      routes: ['/', '/404.html', ...loops.map(loop => `/loop/${loop.id}`)],
+      routes: ['/', '/404.html', ...loops.map((loop) => `/loop/${String(loop.id)}`)],
     },
   },
 })

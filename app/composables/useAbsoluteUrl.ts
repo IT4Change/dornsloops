@@ -6,11 +6,13 @@
  * it the path is returned unchanged — the page still works, only the preview
  * image stays blank.
  */
-export function useAbsoluteUrl () {
-  const base = useRuntimeConfig().public.siteUrl as string
+export function useAbsoluteUrl() {
+  const base = useRuntimeConfig().public.siteUrl
 
   return (path: string): string => {
-    if (!base) return path
+    if (!base) {
+      return path
+    }
     return `${base.replace(/\/+$/, '')}${path}`
   }
 }
