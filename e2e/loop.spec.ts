@@ -1,9 +1,17 @@
 import { expect, test } from '@playwright/test'
 
 import { openLoop, waitForHydration } from './helpers'
-import { FIRST, LAST, LOOPS, SECOND } from './loops'
+import { FIRST, LAST, LONGEST, LOOPS, SECOND } from './loops'
 
 const detail = (id: number) => `/loop/${String(id)}`
+
+/**
+ * What `aria-valuetext` spells a whole second out as. Written out here rather than imported
+ * from `formatDuration`, so the test states the format instead of agreeing with the code it
+ * is checking.
+ */
+const clock = (seconds: number) =>
+  `${String(Math.floor(seconds / 60))}:${String(seconds % 60).padStart(2, '0')}`
 
 test.describe('a loop page', () => {
   test('is a real prerendered URL, reachable without going through the wall', async ({ page }) => {
@@ -76,6 +84,21 @@ test.describe('stepping through the wall', () => {
     await expect(page).toHaveURL(detail(LAST.id))
   })
 
+  test('→ and ← keep walking while the progress bar has the focus', async ({ page }) => {
+    await openLoop(page, FIRST.id)
+    // The bar is a slider, and a slider is where a browser normally expects ← and → to do
+    // the seeking. Here the navigation wins everywhere, and the bar pages instead.
+    await page.getByRole('slider', { name: 'Position im Loop' }).focus()
+
+    await page.keyboard.press('ArrowRight')
+
+    await expect(page).toHaveURL(detail(SECOND.id))
+
+    await page.keyboard.press('ArrowLeft')
+
+    await expect(page).toHaveURL(detail(FIRST.id))
+  })
+
   test('Esc goes back to the wall', async ({ page }) => {
     await openLoop(page, SECOND.id)
 
@@ -136,6 +159,35 @@ test.describe('the player', () => {
     await expect(page.getByRole('button', { name: 'Ton an' })).toBeVisible()
   })
 
+  test('Shift+M mutes, Ctrl+M stays out of it', async ({ page }) => {
+    await openLoop(page, SECOND.id)
+
+    // Ctrl+M belongs to the browser and the screen reader, so the page has to let it pass.
+    // Asserting that nothing happened would pass before a late toggle could even arrive —
+    // hence the order: two keys, and only one of them may count. Had Ctrl+M counted too,
+    // the two would cancel out and the button would read 'Stumm' below.
+    await page.keyboard.press('Control+m')
+    await page.keyboard.press('Shift+m')
+
+    await expect(page.getByRole('button', { name: 'Ton an' })).toBeVisible()
+    await expect
+      .poll(async () => page.locator('video').evaluate((el: HTMLVideoElement) => el.muted))
+      .toBe(true)
+  })
+
+  test('the space bar on a focused button presses that button, not Pause', async ({ page }) => {
+    await openLoop(page, SECOND.id)
+    // The mute button, deliberately: on the pause button both readings of Space end up
+    // pausing, so it could not tell the two apart. Here the shortcut and the button want
+    // opposite things — if the page took the keystroke, the video would stop and stay loud.
+    await page.getByRole('button', { name: 'Stumm' }).focus()
+
+    await page.keyboard.press('Space')
+
+    await expect(page.getByRole('button', { name: 'Ton an' })).toBeVisible()
+    expect(await page.locator('video').evaluate((el: HTMLVideoElement) => el.paused)).toBe(false)
+  })
+
   test('the space bar pauses and resumes', async ({ page }) => {
     await openLoop(page, SECOND.id)
 
@@ -161,6 +213,49 @@ test.describe('the player', () => {
     await expect
       .poll(async () => page.locator('video').evaluate((el: HTMLVideoElement) => el.currentTime))
       .toBeGreaterThan(SECOND.duration / 2)
+  })
+
+  test('PageUp, PageDown and Home seek, and the announced position follows', async ({ page }) => {
+    await openLoop(page, LONGEST.id)
+    const slider = page.getByRole('slider', { name: 'Position im Loop' })
+    await slider.focus()
+
+    // Paused first: a running loop moves the position while the assertion is being made,
+    // and "somewhere further along than before" would then hold without any seek at all.
+    await page.keyboard.press('Space')
+
+    await expect(page.getByRole('button', { name: 'Weiter' })).toBeVisible()
+
+    const duration = await page.locator('video').evaluate((el: HTMLVideoElement) => el.duration)
+    const step = duration / 10
+    // Whole seconds are all the bar reports, and the browser lands on the nearest frame
+    // rather than exactly on the time it was given.
+    const at = async (seconds: number) =>
+      expect
+        .poll(async () => Math.abs(Number(await slider.getAttribute('aria-valuenow')) - seconds))
+        .toBeLessThanOrEqual(1)
+
+    // Twice forward, once back — one step each way. Starting from zero and going forward
+    // once would leave a step backwards indistinguishable from the start it clamps to.
+    await page.keyboard.press('PageUp')
+    await page.keyboard.press('PageUp')
+
+    await at(2 * step)
+
+    await page.keyboard.press('PageDown')
+
+    await at(step)
+    // The number is for the bar, the text is what a screen reader says — they have to
+    // agree, or the announcement describes a position the loop has left.
+    const position = Number(await slider.getAttribute('aria-valuenow'))
+
+    expect(await slider.getAttribute('aria-valuetext')).toBe(
+      `${clock(position)} von ${clock(Math.round(duration))}`,
+    )
+
+    await page.keyboard.press('Home')
+
+    await expect(slider).toHaveAttribute('aria-valuenow', '0')
   })
 })
 

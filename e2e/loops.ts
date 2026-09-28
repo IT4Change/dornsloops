@@ -25,3 +25,12 @@ export const LOOPS = JSON.parse(
 export const FIRST = LOOPS[0]!
 export const SECOND = LOOPS[1]!
 export const LAST = LOOPS[LOOPS.length - 1]!
+
+/**
+ * A page step is a tenth of the loop, so the shortest ones move by barely a second — less
+ * than the whole seconds the bar reports. Seeking is measured on the longest loop there is,
+ * whichever that happens to be after the next ingest.
+ */
+export const LONGEST = LOOPS.reduce((longest, loop) =>
+  loop.duration > longest.duration ? loop : longest,
+)

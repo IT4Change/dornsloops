@@ -191,6 +191,11 @@ spulen; die Navigation behält sie überall. Alles, was mit der Maus geht, geht
 auch mit der Tastatur: Play/Pause und Stumm stehen zusätzlich als Knöpfe unter
 dem Video.
 
+Mit `Strg`, `Alt` oder `⌘` greift keines der Kürzel — `Strg+M` gehört dem Browser
+und dem Screenreader, `⌘M` minimiert das Fenster. `Umschalt+M` schaltet dagegen
+stumm, denn das ist dieselbe Taste in Groß. Und die `Leertaste` auf einem
+fokussierten Knopf löst nur diesen Knopf aus, nicht zusätzlich Pause.
+
 Vor und zurück bleibt innerhalb eines aktiven Tag-Filters und läuft am Ende der
 Liste wieder von vorn. Lautstärke und Stummschaltung überleben im
 `localStorage`.
