@@ -22,7 +22,10 @@ entfällt pm2 komplett.
 ## Releases und atomares Umschalten
 
 `deploy.sh` baut nach `.output/public` und veröffentlicht das Ergebnis in
-`releases/<zeitstempel>/`. Erst wenn der Build durchgelaufen ist und eine
+`releases/<zeitstempel>/` — der Zeitstempel ist UTC im Format
+`YYYYMMDDHHMMSS`, also etwa `20260728113000`. Das Format ist nicht beliebig:
+`deploy.sh` findet alte Releases über `-name '2*'` und sortiert sie
+lexikografisch. Erst wenn der Build durchgelaufen ist und eine
 `index.html` existiert, wandert der Symlink `releases/current` auf das neue
 Verzeichnis — nginx serviert also nie ein halbfertiges Build.
 
@@ -42,11 +45,17 @@ Zwei Details sind dabei nicht optional:
   mtime und hielte jedes Video für geändert.
 
 Die letzten `DORNSLOOPS_KEEP` Releases (Default: 3) bleiben liegen. Ein
-Rollback ist ein Symlink-Wechsel:
+Rollback ist ein Symlink-Wechsel — `ls` nennt die verfügbaren Ziele:
 
 ```sh
-ln -sfn releases/20260728T1130 releases/current
+ls $RELEASES_DIR
+ln -sfn "$RELEASES_DIR/20260728113000" "$RELEASES_DIR/current"
 ```
+
+Der Pfad muss **absolut** sein, so wie `deploy.sh` ihn selbst schreibt: ein
+relatives Ziel löst der Symlink gegen sein eigenes Verzeichnis auf, `ln -sfn
+releases/… releases/current` zeigt also ins Leere. Wer lieber relativ arbeitet,
+wechselt vorher hinein: `cd $RELEASES_DIR && ln -sfn 20260728113000 current`.
 
 | Variable               | Default                  | Bedeutung                          |
 |------------------------|--------------------------|------------------------------------|

@@ -7,12 +7,8 @@
  *   npm run add -- --file sources.txt
  *   npm run add -- --force 7077671          # re-download, keep manual edits
  *
- * Options:
- *   --file <path>      read ids/urls from a file (one per line, # = comment)
- *   --force            re-process items that are already present
- *   --max-height <n>   downscale above this height (default 720)
- *   --max-size <mb>    size budget used when choosing a variant (default 25)
- *   --reencode <mode>  auto (default) | always | never
+ * The options live in USAGE below, which `--help` prints — one list instead of
+ * a copy here that drifts out of sync with the parser.
  */
 
 import { spawn } from 'node:child_process'
@@ -39,11 +35,23 @@ const DATA_FILE = join(ROOT, 'content', 'loops.json')
 const MEDIA_DIR = join(ROOT, 'public', 'loops')
 const TMP_DIR = join(ROOT, 'node_modules', '.cache', 'dornsloops')
 
+const USAGE = `Usage: npm run add -- <url|id>... [options]
+
+  --file <path>      read ids/urls from a file (one per line, # = comment)
+  --force            re-process items that are already present
+  --metadata-only    refresh tags and credits only, leave media files
+                     untouched (needs --force to touch existing entries)
+  --max-height <n>   downscale above this height (default 720)
+  --max-size <mb>    size budget used when choosing a variant (default 25)
+  --reencode <mode>  auto (default) | always | never
+  --help, -h         print this and exit`
+
 function parseArgs(argv) {
   const options = {
     inputs: [],
     file: null,
     force: false,
+    help: false,
     metadataOnly: false,
     maxHeight: 720,
     maxSizeMb: 25,
@@ -71,6 +79,10 @@ function parseArgs(argv) {
       case '--reencode':
         options.reencode = argv[++i]
         break
+      case '--help':
+      case '-h':
+        options.help = true
+        break
       default:
         if (arg.startsWith('-')) {
           throw new Error(`Unknown option: ${arg}`)
@@ -79,6 +91,10 @@ function parseArgs(argv) {
     }
   }
 
+  // Asking for help should print it, not trip over the value of another flag.
+  if (options.help) {
+    return options
+  }
   if (!['auto', 'always', 'never'].includes(options.reencode)) {
     throw new Error(`--reencode must be auto, always or never (got "${options.reencode}")`)
   }
@@ -331,10 +347,16 @@ async function ingestOne(input, { loops, options }) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2))
+
+  if (options.help) {
+    console.log(USAGE)
+    return
+  }
+
   const inputs = [...options.inputs, ...(options.file ? await readIdsFromFile(options.file) : [])]
 
   if (!inputs.length) {
-    console.error('Usage: npm run add -- <url|id>... [--file sources.txt] [--force]')
+    console.error(USAGE)
     process.exit(1)
   }
 

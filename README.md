@@ -30,6 +30,8 @@ dabei die kuratierten Felder (`title`, `featured`) unangetastet.
 | `--max-size <mb>` | `25` | Größenbudget bei der Variantenwahl |
 | `--reencode <modus>` | `auto` | `auto` \| `always` \| `never` |
 
+Dieselbe Liste gibt `npm run add -- --help` im Terminal aus.
+
 Tags ändern sich auf pr0gramm laufend. `--force --metadata-only` holt sie für
 alle Einträge neu, ohne die Mediendateien anzurühren:
 
