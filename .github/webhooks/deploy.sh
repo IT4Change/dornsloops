@@ -34,6 +34,9 @@ git reset --hard origin/master
 
 # Build. The fixed zone keeps a build reproducible wherever it runs; what the page
 # shows no longer depends on it, the upload date carries its own zone.
+#
+# `npm run generate` pins the same zone through cross-env, so a local build matches this
+# one. Kept here as well, for everything else this script runs.
 export TZ=UTC
 
 # Link previews embed absolute URLs, which are baked in at build time. Nuxt

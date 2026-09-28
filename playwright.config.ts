@@ -49,7 +49,12 @@ export default defineConfig({
     // prerendered directory, served by the rules from `nginx.conf.template`. Building here
     // rather than depending on a build that happened earlier — a stale `.output` would test
     // the previous commit.
-    command: `NUXT_PUBLIC_SITE_URL=${BASE_URL} npx nuxt generate && node e2e/static-server.mjs ${PORT}`,
+    //
+    // Through `npm run generate`, not `npx nuxt generate`: the script carries `TZ=UTC`, and
+    // a suite that builds in the runner's zone would be testing a different artefact than
+    // the one `deploy.sh` puts online.
+    command: `npm run generate && node e2e/static-server.mjs ${PORT}`,
+    env: { NUXT_PUBLIC_SITE_URL: BASE_URL },
     url: BASE_URL,
     // Prerendering every loop page takes a while on a cold cache.
     timeout: 300_000,

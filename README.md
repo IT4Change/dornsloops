@@ -95,6 +95,13 @@ Verzeichnis kann direkt von nginx, GitHub Pages o. ä. ausgeliefert werden.
 Die Node-Version steht in [`.tool-versions`](.tool-versions) und gilt lokal wie
 in der CI.
 
+`dev`, `build`, `generate` und `preview` laufen über `cross-env TZ=UTC` — dieselbe
+Zone, in der [`deploy.sh`](.github/webhooks/deploy.sh) baut. Das Datum auf der
+Detailseite rendert zwar ohnehin fest in `Europe/Berlin`, aber ein Build, der
+lokal in einer anderen Zone läuft als auf dem Server, hält nur zufällig dasselbe
+Ergebnis fest. Playwright baut aus demselben Grund über `npm run generate` statt
+über `npx nuxt generate`.
+
 ## Prüfen
 
 ```sh
