@@ -127,7 +127,7 @@ wird, damit im ausgelieferten HTML derselbe Tag steht wie nach der Hydration.
 | --- | --- |
 | `→` / `←` | nächster / vorheriger Loop |
 | `Leertaste` | Pause / Weiter |
-| `M` | stumm schalten |
+| `M` | stumm schalten / Ton an |
 | `Esc` | zurück zur Wand |
 | `Bild auf` / `Bild ab` | im Loop vor / zurück (je ein Zehntel) |
 | `Pos1` / `Ende` | an den Anfang / ans Ende des Loops |
@@ -141,6 +141,13 @@ dem Video.
 Vor und zurück bleibt innerhalb eines aktiven Tag-Filters und läuft am Ende der
 Liste wieder von vorn. Lautstärke und Stummschaltung überleben im
 `localStorage`.
+
+Chrome und Safari lassen Autoplay mit Ton beim ersten Besuch in der Regel nicht
+zu. Dann startet der Loop stumm und sagt es auch — ein Druck auf den Knopf oder
+`M` gibt Ton, und der Hinweis verschwindet, sobald er da ist. Das Knopf-Symbol
+zeigt immer, was das Video tatsächlich tut, nicht was gespeichert ist: eine vom
+Browser erzwungene Stummschaltung landet nicht im `localStorage`, denn sie ist
+keine Entscheidung des Menschen.
 
 Ein Klick auf ein Tag auf der Detailseite filtert die Wand danach.
 

@@ -9,8 +9,22 @@
   const currentTime = ref(0)
   const duration = ref(0)
   const paused = ref(false)
+  /**
+   * Whether the element is actually silent. `prefs.muted` is what the human wants,
+   * this is what the browser allows — an autoplay policy pulls them apart, and the
+   * controls have to show the second one.
+   */
+  const muted = ref(false)
   /** Set when the browser refused to start playback with sound. */
-  const blocked = ref(false)
+  const refused = ref(false)
+
+  /**
+   * The browser's silence contradicts what the human asked for. Saying it that way
+   * instead of setting and clearing a flag means every path back to sound — the button,
+   * `M`, the volume slider — takes the hint down by making the two agree again, and a
+   * deliberate mute afterwards does not bring the browser's excuse back.
+   */
+  const blocked = computed(() => refused.value && muted.value && !prefs.value.muted)
 
   const progress = computed(() => (duration.value ? currentTime.value / duration.value : 0))
 
@@ -36,6 +50,9 @@
     }
     element.volume = prefs.value.volume
     element.muted = prefs.value.muted
+    // `volumechange` arrives a task later, and the icon must not lag a frame behind the
+    // click that caused it.
+    onVolumeChange()
   }
 
   async function start() {
@@ -49,11 +66,13 @@
     onTimeUpdate()
     try {
       await element.play()
-      blocked.value = false
+      refused.value = false
     } catch {
-      // Fall back to a muted start so something plays; the user can unmute.
+      // Fall back to a muted start so something plays; the user can unmute. `prefs` stays
+      // untouched — a browser policy is no reason to write `muted: true` into storage.
       element.muted = true
-      blocked.value = true
+      onVolumeChange()
+      refused.value = true
       await element.play().catch(() => {})
     }
   }
@@ -70,6 +89,11 @@
 
   function onPlayState() {
     paused.value = video.value?.paused ?? true
+  }
+
+  /** The element's own report — it also fires when the browser mutes on its own. */
+  function onVolumeChange() {
+    muted.value = video.value?.muted ?? false
   }
 
   function seekTo(seconds: number) {
@@ -120,8 +144,9 @@
   }
 
   function toggleMute() {
-    prefs.value.muted = !prefs.value.muted
-    blocked.value = false
+    // Inverting what is audible, not what is stored: after a refused autoplay the two
+    // differ, and the button owes its answer to the icon the user pressed.
+    prefs.value.muted = !muted.value
     applyPrefs()
     persistPrefs()
   }
@@ -197,6 +222,7 @@
       @loadedmetadata="onTimeUpdate"
       @play="onPlayState"
       @pause="onPlayState"
+      @volumechange="onVolumeChange"
       @click="togglePlay"
     />
 
@@ -228,11 +254,11 @@
       <button
         class="button"
         type="button"
-        :title="prefs.muted ? 'Ton an (M)' : 'Stumm (M)'"
-        :aria-label="prefs.muted ? 'Ton an' : 'Stumm'"
+        :title="muted ? 'Ton an (M)' : 'Stumm (M)'"
+        :aria-label="muted ? 'Ton an' : 'Stumm'"
         @click="toggleMute"
       >
-        {{ prefs.muted ? '🔇' : '🔊' }}
+        {{ muted ? '🔇' : '🔊' }}
       </button>
       <input
         class="player__volume"
@@ -245,7 +271,7 @@
         @input="setVolume"
       />
       <p v-if="blocked" class="player__blocked">
-        Der Browser hat den Ton blockiert — auf 🔊 tippen.
+        Der Browser hat den Ton blockiert — auf den Knopf tippen oder M drücken.
       </p>
     </div>
   </div>
