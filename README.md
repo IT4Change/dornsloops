@@ -101,7 +101,13 @@ in der CI.
 npm run test:lint            # eslint + typecheck, beides muss still bleiben
 npm run test:lint:eslint     # eslint --max-warnings 0
 npm run test:lint:typecheck  # nuxt typecheck (vue-tsc, auch in .vue)
+npm run test:unit            # vitest mit Coverage
+npm run test:unit:dev        # dasselbe im Watch-Modus
+npm run test:e2e             # playwright gegen den statischen Build
 ```
+
+Die vier `test:*`-Skripte sind der Haus-Vertrag: derselbe Satz Namen wie in
+jahrweiser und werft, damit ein Projekt ohne Nachfragen abnehmbar ist.
 
 Geprüft wird gegen [`eslint-config-it4c`](https://github.com/IT4Change/eslint-config-it4c);
 Prettier läuft als Regel darin mit, es gibt also keinen zweiten Formatierungslauf.
@@ -110,8 +116,47 @@ Was dieses Projekt abweichend regelt, steht mit Begründung in
 Entscheidung, keine stillschweigende. `npm run test:lint:eslint -- --fix` räumt
 das Formatierbare selbst auf.
 
-Dieselben Skripte laufen bei jedem Push und PR über
-[`.github/workflows/app.test.lint.code.yml`](.github/workflows/app.test.lint.code.yml).
+### Unit
+
+Die Specs liegen neben der Datei, die sie prüfen (`x.ts` / `x.spec.ts`).
+[`vitest.config.ts`](vitest.config.ts) fährt sie in zwei Projekten: `app` in der
+Nuxt-Umgebung (`@nuxt/test-utils`), `scripts` als nacktes Node — die
+Ingest-Skripte brauchen keine App, und die `.vue`-Dateien gehen ohne nicht.
+
+Wo eine Spur gegen `content/loops.json` liefe, steht stattdessen eine kleine
+Wand aus [`app/test/fixtures.ts`](app/test/fixtures.ts); sonst würde jeder neue
+Loop die Erwartungen verschieben.
+
+Die Coverage-Schwellen stehen pro Bereich, nicht als eine Zahl fürs Projekt:
+`app/**` hält 97 %, `scripts/ingest.mjs` deutlich weniger, weil dessen zweite
+Hälfte ffmpeg- und Netzwerk-Orchestrierung ist, die nur ein echter Download
+durchläuft. Die Zahlen sind der gemessene Boden ohne Luft — sie anzuheben ist
+ein eigener Commit, damit die Ratsche sichtbar bleibt.
+
+### E2E
+
+Playwright fährt gegen genau das Artefakt, das auch deployt wird: `nuxt generate`
+und das Verzeichnis `.output/public`, ausgeliefert von
+[`e2e/static-server.mjs`](e2e/static-server.mjs) — sechzig Zeilen, die die
+`try_files`- und `error_page`-Regeln aus
+[`nginx.conf.template`](.github/webhooks/nginx.conf.template) nachbilden, damit
+ein unbekannter Loop im Test dieselbe 404 bekommt wie auf dem Server.
+
+Der Port ist `3030` und nicht `3000`: `npm run dev` wohnt dort, und Playwright
+könnte einen laufenden Dev-Server nicht von seinem eigenen unterscheiden — die
+Suite liefe dann gegen einen Build, den sie nie gemacht hat. Mit `E2E_PORT` zu
+überschreiben.
+
+```sh
+npx playwright install chromium   # einmalig
+npm run test:e2e
+npm run test:e2e -- --ui          # interaktiv
+```
+
+Dieselben Skripte laufen bei jedem Push und PR:
+[`app.test.lint.code.yml`](.github/workflows/app.test.lint.code.yml),
+[`app.test.unit.code.yml`](.github/workflows/app.test.unit.code.yml),
+[`app.test.e2e.code.yml`](.github/workflows/app.test.e2e.code.yml).
 
 ## Bedienung
 

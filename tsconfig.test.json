@@ -1,0 +1,24 @@
+{
+  // The test harness sits outside every project Nuxt generates: `app/**` is covered by
+  // `.nuxt/tsconfig.app.json`, but the Playwright suite and the two tool configs are in
+  // none of them. Without this, `nuxt typecheck` would walk past them and eslint's type-aware
+  // rules would refuse to parse them at all.
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "preserve",
+    "moduleResolution": "Bundler",
+    "lib": ["ESNext", "DOM"],
+    "types": ["node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts", "vitest.config.ts"]
+}

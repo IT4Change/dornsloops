@@ -13,7 +13,10 @@
     "add": "node scripts/ingest.mjs",
     "test:lint": "npm run test:lint:eslint && npm run test:lint:typecheck",
     "test:lint:eslint": "eslint --max-warnings 0 .",
-    "test:lint:typecheck": "nuxt typecheck"
+    "test:lint:typecheck": "nuxt typecheck",
+    "test:unit": "vitest run --coverage",
+    "test:unit:dev": "vitest",
+    "test:e2e": "playwright test"
   },
   "repository": {
     "type": "git",
@@ -34,10 +37,16 @@
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
+    "@nuxt/test-utils": "^4.3.2",
+    "@playwright/test": "^1.63.0",
+    "@vitest/coverage-v8": "^5.0.2",
+    "@vue/test-utils": "^2.5.1",
     "eslint": "^10.11.0",
     "eslint-config-it4c": "^0.13.2",
+    "happy-dom": "^20.14.5",
     "prettier": "^3.9.9",
     "typescript": "^6.0.3",
+    "vitest": "^5.0.2",
     "vue-tsc": "^3.3.11"
   }
 }

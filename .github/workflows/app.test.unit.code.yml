@@ -1,0 +1,22 @@
+name: test:unit
+
+on:
+  push:
+    branches:
+      - master
+  pull_request: null
+
+jobs:
+  unit:
+    name: vitest + coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .tool-versions
+          cache: npm
+      # `postinstall` runs `nuxt prepare`; without the generated types under `.nuxt` the
+      # `nuxt` test environment has no app to boot the component specs in.
+      - run: npm ci
+      - run: npm run test:unit

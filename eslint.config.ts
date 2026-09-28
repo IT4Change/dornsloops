@@ -1,12 +1,26 @@
-import config, { defaultFiles, vue3 } from 'eslint-config-it4c'
+import config, { defaultFiles, vitest, vue3 } from 'eslint-config-it4c'
 
 export default [
   {
-    // `public/` holds the mirrored media and nothing hand-written.
-    ignores: ['.nuxt/**', '.output/**', 'dist/**', 'releases/**', 'public/**'],
+    // `public/` holds the mirrored media and nothing hand-written; the last three are what
+    // a test run leaves behind.
+    ignores: [
+      '.nuxt/**',
+      '.output/**',
+      'dist/**',
+      'releases/**',
+      'public/**',
+      'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
+    ],
   },
   ...config,
   ...vue3,
+  // The vitest rules match `**/*.spec.*`, which is also what the Playwright specs are
+  // called. They are the same kind of file under a different runner, and the handful of
+  // rules that actually differ are switched off for `e2e/**` further down.
+  ...vitest,
   {
     settings: {
       'import-x/resolver': {
@@ -66,6 +80,66 @@ export default [
     // pending load, a codec the device refuses. The muted retry answers all of them.
     files: ['app/components/LoopPlayer.vue'],
     rules: { 'no-catch-all/no-catch-all': 'off' },
+  },
+  {
+    files: ['**/*.spec.ts', '**/*.spec.mjs'],
+    rules: {
+      // A spec is allowed an assumption the production code is not: every one of these is an
+      // index into a list the test itself set up. `?.` would turn a missing element into a
+      // trigger that quietly does nothing and a failure three lines further on.
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      // A `beforeEach` that resets state shared across the whole file belongs to the file.
+      // Pushed into each describe block, it is one copy per block and one of them forgotten.
+      'vitest/require-top-level-describe': 'off',
+    },
+  },
+  {
+    // The import form of `vi.mock` types the factory against the mocked module, and for a
+    // JSON file that type is the literal shape of the committed data — a `Loop[]` fixture
+    // is then not assignable to it. The path form is the only one that admits a stand-in,
+    // which is the entire point of mocking `content/loops.json`.
+    files: ['app/**/*.spec.ts'],
+    rules: { 'vitest/prefer-import-in-mock': 'off' },
+  },
+  {
+    // The zone is what the detail page pins down, so its spec has to move it — and
+    // `process.env.TZ` is the only handle V8 offers for that. Written as a directory glob
+    // because `[id]` in a filename is a character class to the matcher, not two brackets.
+    files: ['app/pages/loop/**/*.spec.ts'],
+    rules: { 'n/no-process-env': 'off' },
+  },
+  {
+    // Playwright's specs are `*.spec.ts` like the rest, so the vitest rules reach them too.
+    // These are the ones that mean something different under Playwright: its `test` takes a
+    // fixture object rather than vitest globals, and a describe block is a group, not a
+    // suite that must hold a hook. The suite also reads the real `content/loops.json` off
+    // the disk at load — the point is to run against the file the build prerenders from,
+    // and a path from `import.meta.url` is not input.
+    files: ['e2e/**'],
+    rules: {
+      'vitest/prefer-importing-vitest-globals': 'off',
+      'vitest/require-hook': 'off',
+      'vitest/expect-expect': 'off',
+      'vitest/consistent-test-it': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      'n/no-sync': 'off',
+      'security/detect-non-literal-fs-filename': 'off',
+    },
+  },
+  {
+    // The e2e server is the deployment's nginx in sixty lines: its one console line is how
+    // Playwright knows it came up, and a malformed URL is not an error to rethrow but a 404.
+    files: ['e2e/static-server.mjs'],
+    rules: {
+      'no-console': 'off',
+      'no-catch-all/no-catch-all': 'off',
+    },
+  },
+  {
+    // The port and the CI flag come from the environment by design — that is how one run
+    // differs from the next. Same reason the deploy script reads them.
+    files: ['playwright.config.ts'],
+    rules: { 'n/no-process-env': 'off' },
   },
   {
     files: ['scripts/**/*.mjs'],

@@ -6,6 +6,16 @@ dist
 # Published builds on the server — must stay untracked, or `git reset --hard`
 # during a deploy would clobber the live release.
 releases
+# Test output: the coverage report and whatever Playwright kept from the last run
+# (its HTML report, plus traces and screenshots of failures).
+coverage
+playwright-report
+test-results
+# Written by @nuxt/test-utils to note which version set the test environment up, and
+# rewritten whenever it is missing.
+.nuxtrc
+# vue-tsc's incremental cache, one per referenced project.
+*.tsbuildinfo
 *.log
 .DS_Store
 .env

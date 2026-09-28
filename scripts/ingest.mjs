@@ -46,7 +46,7 @@ const USAGE = `Usage: npm run add -- <url|id>... [options]
   --reencode <mode>  auto (default) | always | never
   --help, -h         print this and exit`
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const options = {
     inputs: [],
     file: null,
@@ -101,7 +101,7 @@ function parseArgs(argv) {
   return options
 }
 
-async function readIdsFromFile(path) {
+export async function readIdsFromFile(path) {
   const text = await readFile(path, 'utf8')
   return text
     .split('\n')
@@ -229,7 +229,7 @@ async function extractPoster(video, output, duration) {
   ])
 }
 
-function describeSource(id, item) {
+export function describeSource(id, item) {
   return {
     platform: 'pr0gramm',
     url: itemUrl(id),
@@ -240,7 +240,7 @@ function describeSource(id, item) {
   }
 }
 
-function needsTranscode(variant, mode, { maxHeight, maxBytes }) {
+export function needsTranscode(variant, mode, { maxHeight, maxBytes }) {
   if (mode === 'always') {
     return true
   }
@@ -254,7 +254,7 @@ function needsTranscode(variant, mode, { maxHeight, maxBytes }) {
   )
 }
 
-async function ingestOne(input, { loops, options }) {
+export async function ingestOne(input, { loops, options }) {
   const id = parseItemId(input)
   const existing = loops.find((loop) => loop.id === id)
 
@@ -387,9 +387,15 @@ async function main() {
   }
 }
 
-try {
-  await main()
-} catch (error) {
-  console.error(error)
-  process.exit(1)
+// Only when started as a command. The helpers above are imported by their tests, and a
+// module that ingests on import would download the library to run one assertion.
+// `import.meta.main` would say this in one word, but it needs Node 24 and the README
+// promises 20.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  try {
+    await main()
+  } catch (error) {
+    console.error(error)
+    process.exit(1)
+  }
 }
