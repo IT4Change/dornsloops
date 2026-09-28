@@ -6,9 +6,28 @@
   const { prefs, persistPrefs, loadPrefs } = useLoops()
 
   const video = ref<HTMLVideoElement | null>(null)
-  const progress = ref(0)
+  const currentTime = ref(0)
+  const duration = ref(0)
+  const paused = ref(false)
   /** Set when the browser refused to start playback with sound. */
   const blocked = ref(false)
+
+  const progress = computed(() => (duration.value ? currentTime.value / duration.value : 0))
+
+  /** Whole seconds are all assistive tech needs, and they keep the attribute from churning. */
+  const positionSeconds = computed(() => Math.round(currentTime.value))
+  const durationSeconds = computed(() => Math.round(duration.value))
+  const positionLabel = computed(
+    () => `${formatDuration(currentTime.value)} von ${formatDuration(duration.value)}`,
+  )
+
+  /**
+   * How far one page step seeks — a share of the loop rather than a fixed number of
+   * seconds, because the loops run from eight seconds to four minutes.
+   */
+  const PAGE_STEP = 0.1
+  /** Seeking exactly to the end would wrap a looping video straight back to the start. */
+  const END_EPSILON = 0.05
 
   function applyPrefs() {
     const element = video.value
@@ -26,6 +45,8 @@
     }
 
     applyPrefs()
+    // The new source starts over, so the slider has to follow before the first timeupdate.
+    onTimeUpdate()
     try {
       await element.play()
       blocked.value = false
@@ -39,7 +60,26 @@
 
   function onTimeUpdate() {
     const element = video.value
-    progress.value = element?.duration ? element.currentTime / element.duration : 0
+    if (!element) {
+      return
+    }
+    currentTime.value = element.currentTime
+    // `duration` is NaN until the metadata has arrived.
+    duration.value = Number.isFinite(element.duration) ? element.duration : 0
+  }
+
+  function onPlayState() {
+    paused.value = video.value?.paused ?? true
+  }
+
+  function seekTo(seconds: number) {
+    const element = video.value
+    if (!element?.duration) {
+      return
+    }
+
+    element.currentTime = Math.min(Math.max(seconds, 0), element.duration)
+    currentTime.value = element.currentTime
   }
 
   function seek(event: MouseEvent) {
@@ -50,7 +90,33 @@
     }
 
     const ratio = (event.clientX - bar.getBoundingClientRect().left) / bar.offsetWidth
-    element.currentTime = Math.min(Math.max(ratio, 0), 1) * element.duration
+    seekTo(ratio * element.duration)
+  }
+
+  /**
+   * The bar is a slider, but ← and → stay with the loop navigation of the page around it
+   * — so paging and Home/End are what is left to seek with.
+   */
+  function onBarKeydown(event: KeyboardEvent) {
+    const element = video.value
+    if (!element?.duration) {
+      return
+    }
+
+    const step = element.duration * PAGE_STEP
+    const targets: Record<string, number | undefined> = {
+      PageUp: element.currentTime + step,
+      PageDown: element.currentTime - step,
+      Home: 0,
+      End: element.duration - END_EPSILON,
+    }
+    const target = targets[event.key]
+    if (target === undefined) {
+      return
+    }
+
+    event.preventDefault()
+    seekTo(target)
   }
 
   function toggleMute() {
@@ -81,14 +147,22 @@
 
   function onKeydown(event: KeyboardEvent) {
     const target = event.target as HTMLElement
-    if (target.tagName === 'INPUT') {
+    // A shortcut of the page must not eat a keystroke meant for a field, and a modifier
+    // turns it into a browser or system shortcut (⌘M minimises, Ctrl+M is the reader's).
+    if (target.tagName === 'INPUT' || event.ctrlKey || event.metaKey || event.altKey) {
       return
     }
 
     if (event.key === ' ') {
+      // Space activates whatever button has the focus; taking it away would leave the
+      // controls unusable from the keyboard.
+      if (target.tagName === 'BUTTON' || target.tagName === 'A') {
+        return
+      }
       event.preventDefault()
       togglePlay()
-    } else if (event.key === 'm') {
+    } else if (event.key.toLowerCase() === 'm') {
+      // `event.key` is 'M' with Shift or CapsLock, and the README spells the key that way.
       event.preventDefault()
       toggleMute()
     }
@@ -120,10 +194,24 @@
       loop
       playsinline
       @timeupdate="onTimeUpdate"
+      @loadedmetadata="onTimeUpdate"
+      @play="onPlayState"
+      @pause="onPlayState"
       @click="togglePlay"
     />
 
-    <div class="player__progress" @click="seek">
+    <div
+      class="player__progress"
+      role="slider"
+      tabindex="0"
+      aria-label="Position im Loop"
+      aria-valuemin="0"
+      :aria-valuemax="durationSeconds"
+      :aria-valuenow="positionSeconds"
+      :aria-valuetext="positionLabel"
+      @click="seek"
+      @keydown="onBarKeydown"
+    >
       <div class="player__progress-fill" :style="{ transform: `scaleX(${progress})` }" />
     </div>
 
@@ -131,7 +219,17 @@
       <button
         class="button"
         type="button"
+        :title="paused ? 'Weiter (Leertaste)' : 'Pause (Leertaste)'"
+        :aria-label="paused ? 'Weiter' : 'Pause'"
+        @click="togglePlay"
+      >
+        {{ paused ? '▶️' : '⏸️' }}
+      </button>
+      <button
+        class="button"
+        type="button"
         :title="prefs.muted ? 'Ton an (M)' : 'Stumm (M)'"
+        :aria-label="prefs.muted ? 'Ton an' : 'Stumm'"
         @click="toggleMute"
       >
         {{ prefs.muted ? '🔇' : '🔊' }}

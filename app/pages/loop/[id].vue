@@ -52,6 +52,21 @@
     twitterImage: () => absolute(loop.value?.poster ?? ''),
   })
 
+  /**
+   * Both the zone and the language are pinned: the page is prerendered on a build host
+   * running in UTC (`deploy.sh`) and hydrated in whatever zone the reader sits in, so an
+   * implicit zone makes a timestamp near midnight render as two different days — visibly,
+   * and as a hydration mismatch. Berlin is the zone the loops are posted in, and the rest
+   * of the page is German anyway.
+   */
+  const postedOn = computed(() =>
+    loop.value
+      ? new Date(loop.value.source.postedAt).toLocaleDateString('de-DE', {
+          timeZone: 'Europe/Berlin',
+        })
+      : '',
+  )
+
   /** Filtering from a detail page only makes sense back on the wall. */
   function filterByTag(tag: string) {
     setTag(tag)
@@ -133,7 +148,7 @@
       <dd>{{ loop.source.uploader }}</dd>
 
       <dt>Hochgeladen am</dt>
-      <dd>{{ new Date(loop.source.postedAt).toLocaleDateString('de-DE') }}</dd>
+      <dd>{{ postedOn }}</dd>
 
       <template v-if="loop.source.original">
         <dt>Originalquelle</dt>

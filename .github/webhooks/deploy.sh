@@ -32,7 +32,8 @@ git fetch --prune origin
 git checkout master
 git reset --hard origin/master
 
-# Build
+# Build. The fixed zone keeps a build reproducible wherever it runs; what the page
+# shows no longer depends on it, the upload date carries its own zone.
 export TZ=UTC
 
 # Link previews embed absolute URLs, which are baked in at build time. Nuxt

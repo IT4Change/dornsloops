@@ -119,7 +119,9 @@ Die Startseite ist eine Masonry-Wand mit stummen Vorschauen (Videos werden erst
 geladen, wenn sie in die Nähe des Viewports kommen). Ein Klick führt auf die
 Detailseite des Loops: `/loop/7077671` — eine echte, prerenderte URL, direkt
 verlinkbar. Dort läuft der Loop mit Ton, endlos, und daneben stehen alle Tags,
-die Quelle, der Uploader und das Upload-Datum.
+die Quelle, der Uploader und das Upload-Datum. Das Datum steht fest in
+`Europe/Berlin` — unabhängig davon, in welcher Zeitzone gebaut oder gelesen
+wird, damit im ausgelieferten HTML derselbe Tag steht wie nach der Hydration.
 
 | Taste | Funktion |
 | --- | --- |
@@ -127,6 +129,14 @@ die Quelle, der Uploader und das Upload-Datum.
 | `Leertaste` | Pause / Weiter |
 | `M` | stumm schalten |
 | `Esc` | zurück zur Wand |
+| `Bild auf` / `Bild ab` | im Loop vor / zurück (je ein Zehntel) |
+| `Pos1` / `Ende` | an den Anfang / ans Ende des Loops |
+
+Die letzten beiden Zeilen wirken, solange der Fortschrittsbalken den Fokus hat —
+er ist mit `Tab` erreichbar. `→` und `←` wechseln auch dort den Loop, statt zu
+spulen; die Navigation behält sie überall. Alles, was mit der Maus geht, geht
+auch mit der Tastatur: Play/Pause und Stumm stehen zusätzlich als Knöpfe unter
+dem Video.
 
 Vor und zurück bleibt innerhalb eines aktiven Tag-Filters und läuft am Ende der
 Liste wieder von vorn. Lautstärke und Stummschaltung überleben im
