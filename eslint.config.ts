@@ -148,6 +148,10 @@ export default [
       // one — `./pr0gramm` threw `ERR_MODULE_NOT_FOUND` for exactly this reason.
       'import-x/extensions': ['error', 'never', { json: 'always', mjs: 'always' }],
       'n/file-extension-in-import': ['error', 'always'],
+      // The rule wants an alias instead of `../`, and the scripts have none — they run as
+      // plain Node, outside anything Nuxt resolves. `content/generic-tags.json` is a level
+      // up and reachable no other way.
+      'import-x/no-relative-parent-imports': 'off',
       // The ingest script is a CLI: its progress on stdout is the output, and the files it
       // writes are named after the ids it was told to fetch.
       'no-console': 'off',

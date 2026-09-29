@@ -99,6 +99,10 @@ describe(guessTitle, () => {
     expect(guessTitle(['wtf', 'Sandstorm'], 7077671)).toBe('Sandstorm')
   })
 
+  it('skips the rating of the post, which says nothing about the loop', () => {
+    expect(guessTitle(['sfw', 'nsfb', 'Sandstorm'], 7077671)).toBe('Sandstorm')
+  })
+
   it('falls back to the id when every tag is generic', () => {
     expect(guessTitle(['video', 'sound', 'loop'], 7077671)).toBe('Loop 7077671')
   })

@@ -47,11 +47,22 @@ describe('the tag bar', () => {
   it('offers the shared tags with the number of loops behind each', async () => {
     const wrapper = await mountWall()
 
+    // One button per tag, in the spelling the data mostly uses — `sandstorm` is written
+    // three different ways across the wall and still gets one button reading three.
     expect(tagButtons(wrapper).map((button) => button.text())).toStrictEqual([
-      'sandstorm 3',
+      'Sandstorm 3',
       'techno 3',
-      'chill 2',
+      'Chill 2',
     ])
+  })
+
+  it('shows every loop a button counts, whatever spelling it carries', async () => {
+    const wrapper = await mountWall()
+
+    await tagButtons(wrapper)[0]!.trigger('click') // Sandstorm, on loops 1, 2 and 4
+    await nextTick()
+
+    expect(wrapper.findAll('.tile')).toHaveLength(3)
   })
 
   it('marks the tag that is filtering as pressed', async () => {

@@ -35,6 +35,16 @@ describe('the wall', () => {
 
     setTag('sandstorm')
 
+    // The three write it `Sandstorm`, `sandstorm` and `SANDSTORM`; the filter takes all of
+    // them, or the button would promise three loops and show one.
+    expect(ids(loops.value)).toStrictEqual([1, 2, 4])
+  })
+
+  it('takes a tag in any casing, wherever it was pressed', () => {
+    const { loops, setTag } = useLoops()
+
+    setTag('SaNdStOrM')
+
     expect(ids(loops.value)).toStrictEqual([1, 2, 4])
   })
 
@@ -62,19 +72,65 @@ describe('the tag bar', () => {
 
     // `sandstorm` and `techno` tie at three, so the second criterion decides.
     expect(tags.value).toStrictEqual([
-      { tag: 'sandstorm', count: 3 },
-      { tag: 'techno', count: 3 },
-      { tag: 'chill', count: 2 },
+      { tag: 'sandstorm', label: 'Sandstorm', count: 3 },
+      { tag: 'techno', label: 'techno', count: 3 },
+      { tag: 'chill', label: 'Chill', count: 2 },
     ])
+  })
+
+  it('counts the spellings of a tag as one tag, not as several', () => {
+    const { tags } = useLoops()
+    const sandstorm = tags.value.filter((entry) => entry.tag === 'sandstorm')
+
+    // Three loops, three spellings: one button reading three, not three buttons reading one
+    // — and the threshold would have swallowed all three of those.
+    expect(sandstorm).toHaveLength(1)
+    expect(sandstorm[0]!.count).toBe(3)
+  })
+
+  it('shows the spelling most of the loops use', () => {
+    const { tags } = useLoops()
+
+    // `techno` twice against `Techno` once.
+    expect(tags.value.find((entry) => entry.tag === 'techno')?.label).toBe('techno')
+  })
+
+  it('shows the spelling it saw first when none of them is in the majority', () => {
+    const { tags } = useLoops()
+
+    // `Sandstorm`, `sandstorm` and `SANDSTORM`, one each — loop 1 is at the top of the wall.
+    expect(tags.value.find((entry) => entry.tag === 'sandstorm')?.label).toBe('Sandstorm')
+  })
+
+  it('counts a loop once even when it carries two spellings of the same tag', () => {
+    const { tags, setTag, loops } = useLoops()
+    const chill = tags.value.find((entry) => entry.tag === 'chill')
+
+    // Loop 3 is tagged `chill` and `Chill`; the button says how many loops it opens, so it
+    // says two — while the spelling is decided by all three mentions and reads `Chill`.
+    expect(chill).toStrictEqual({ tag: 'chill', label: 'Chill', count: 2 })
+
+    setTag('chill')
+
+    expect(loops.value).toHaveLength(chill!.count)
   })
 
   it('drops tags that describe the medium, whatever their casing', () => {
     const { tags } = useLoops()
     const listed = tags.value.map((entry) => entry.tag)
 
-    expect(listed).not.toContain('Video')
+    expect(listed).not.toContain('video')
     expect(listed).not.toContain('sound')
     expect(listed).not.toContain('loop')
+  })
+
+  it('drops the tags the ingest script calls generic too — one list, not two', () => {
+    const { tags } = useLoops()
+    const listed = tags.value.map((entry) => entry.tag)
+
+    // `Musik` sits on two loops and would clear the threshold; it is hidden because the
+    // title guesser has always refused it, and both now read the same list.
+    expect(listed).not.toContain('musik')
   })
 
   it('drops a tag that only one loop carries — it filters to itself', () => {
@@ -82,6 +138,18 @@ describe('the tag bar', () => {
     const listed = tags.value.map((entry) => entry.tag)
 
     expect(listed).not.toContain('solo')
+  })
+
+  it('offers a button for every tag it counts, and counts what the button opens', () => {
+    const { tags, setTag, loops } = useLoops()
+
+    for (const entry of tags.value) {
+      setTag(entry.tag)
+
+      expect(loops.value).toHaveLength(entry.count)
+
+      setTag(null)
+    }
   })
 })
 
@@ -110,6 +178,23 @@ describe('setTag', () => {
     setTag('sandstorm')
 
     expect(activeTag.value).toBe('sandstorm')
+  })
+
+  it('folds the tag it is given, so the same filter is the same filter', () => {
+    const { activeTag, setTag } = useLoops()
+
+    setTag('Sandstorm')
+
+    expect(activeTag.value).toBe('sandstorm')
+  })
+
+  it('clears a filter that was set from another spelling of the same tag', () => {
+    const { activeTag, setTag } = useLoops()
+
+    setTag('Sandstorm')
+    setTag('SANDSTORM')
+
+    expect(activeTag.value).toBeNull()
   })
 
   it('takes null as the way back to the whole wall', () => {

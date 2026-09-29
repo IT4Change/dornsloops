@@ -39,7 +39,7 @@
         :aria-pressed="activeTag === entry.tag"
         @click="setTag(entry.tag)"
       >
-        {{ entry.tag }} <span class="tags__count">{{ entry.count }}</span>
+        {{ entry.label }} <span class="tags__count">{{ entry.count }}</span>
       </button>
     </nav>
 

@@ -5,27 +5,19 @@
  * all this project needs. Media lives on dedicated CDN hosts.
  */
 
+import genericTagList from '../content/generic-tags.json' with { type: 'json' }
+
 const API = 'https://pr0gramm.com/api'
 const VID_CDN = 'https://vid.pr0gramm.com'
 const THUMB_CDN = 'https://thumb.pr0gramm.com'
 
-/** Tags that describe the medium rather than the content — useless as a title. */
-const GENERIC_TAGS = new Set([
-  'video',
-  'sound',
-  'loop',
-  'loops',
-  'ton',
-  'mit ton',
-  'webm',
-  'gif',
-  'musik',
-  'music',
-  'audio',
-  'repost',
-  'oc',
-  'wallpaper',
-])
+/**
+ * Tags that describe the medium, the provenance or the post's rating rather than the
+ * content — useless as a title, and the same list the wall's filter bar hides. It lives in
+ * `content/` so both sides read it: this file is plain Node, the composable is a Nuxt app,
+ * and JSON is the one format neither has to be taught.
+ */
+const GENERIC_TAGS = new Set(genericTagList)
 
 /** Accepts a full pr0gramm URL or a bare item id. */
 export function parseItemId(input) {

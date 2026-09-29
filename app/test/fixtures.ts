@@ -33,20 +33,41 @@ export function makeLoop(overrides: Partial<Loop> = {}): Loop {
 
 /**
  * A wall small enough to reason about, standing in for `content/loops.json` wherever a
- * spec mocks it. Built so every rule the composable applies has something to bite on:
- * `Video`/`sound`/`loop` are hidden tags in three spellings, `solo` sits on a single loop,
- * `chill` on two, `techno` and `sandstorm` tie at three so the alphabetical tiebreak has
- * to decide, only loop 4 carries a credit to an earlier source, and loop 5 has no tags at
- * all — pr0gramm hands those out too. Four minutes in total.
+ * spec mocks it. Built so every rule the composable applies has something to bite on, with
+ * the same shapes the real data has:
+ *
+ * - `Video`/`sound`/`loop` are generic tags in three spellings, `Musik`/`musik` is one the
+ *   ingest script has always known and the filter bar used to miss;
+ * - `sandstorm` sits on three loops in three spellings, all tied, so the button has to fall
+ *   back to the one seen first;
+ * - `techno` is on three loops, twice lower case — a majority the button follows;
+ * - `chill` is on two loops but written three times, because loop 3 carries both spellings:
+ *   the count is loops, the spelling is a vote, and the two must not be the same number;
+ * - `sandstorm` and `techno` tie at three, so the alphabetical tiebreak has to decide;
+ * - `solo` sits on a single loop, below the bar's threshold;
+ * - only loop 4 credits an earlier source, and loop 5 has no tags at all — pr0gramm hands
+ *   those out too.
+ *
+ * Four minutes in total.
  */
 export const WALL: readonly Loop[] = [
-  makeLoop({ id: 1, title: 'Loop 1', tags: ['techno', 'sandstorm', 'Video'], duration: 30 }),
-  makeLoop({ id: 2, title: 'Loop 2', tags: ['techno', 'sandstorm', 'sound'], duration: 90 }),
-  makeLoop({ id: 3, title: 'Loop 3', tags: ['techno', 'chill'], duration: 45 }),
+  makeLoop({
+    id: 1,
+    title: 'Loop 1',
+    tags: ['techno', 'Sandstorm', 'Video', 'Musik'],
+    duration: 30,
+  }),
+  makeLoop({
+    id: 2,
+    title: 'Loop 2',
+    tags: ['Techno', 'sandstorm', 'sound', 'musik'],
+    duration: 90,
+  }),
+  makeLoop({ id: 3, title: 'Loop 3', tags: ['techno', 'chill', 'Chill'], duration: 45 }),
   makeLoop({
     id: 4,
     title: 'Loop 4',
-    tags: ['sandstorm', 'chill', 'solo', 'loop'],
+    tags: ['SANDSTORM', 'Chill', 'solo', 'loop'],
     duration: 15,
     source: { ...makeLoop({ id: 4 }).source, original: 'https://youtube.com/watch?v=x' },
   }),

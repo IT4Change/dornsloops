@@ -26,8 +26,15 @@ test.describe('the wall', () => {
     // The tag bar is a row of click handlers; before hydration the press goes nowhere.
     await waitForHydration(page)
     const tag = page.locator('.tags__item').first()
-    const name = (await tag.textContent())!.trim().replace(/\s+\d+$/, '')
-    const expected = LOOPS.filter((loop) => loop.tags.includes(name)).length
+    // The button shows one spelling of a tag the data may write several ways, and the filter
+    // behind it matches all of them — so the expectation has to fold as well.
+    const name = (await tag.textContent())!
+      .trim()
+      .replace(/\s+\d+$/, '')
+      .toLowerCase()
+    const expected = LOOPS.filter((loop) =>
+      loop.tags.some((entry) => entry.toLowerCase() === name),
+    ).length
 
     await tag.click()
 
@@ -38,6 +45,22 @@ test.describe('the wall', () => {
 
     await expect(tag).toHaveAttribute('aria-pressed', 'false')
     await expect(page.locator('.tile')).toHaveCount(LOOPS.length)
+  })
+
+  test('gives a tag one button, however many ways the data spells it', async ({ page }) => {
+    await page.goto('/')
+    const labels = (await page.locator('.tags__item').allTextContents()).map((text) =>
+      text
+        .trim()
+        .replace(/\s+\d+$/, '')
+        .toLowerCase(),
+    )
+
+    // Against the real wall, not a fixture: the bar used to hand `Original Content` and
+    // `original content` separate counts and then drop the smaller one. Two buttons folding
+    // to one name means the counting came apart again.
+    expect(labels.length).toBeGreaterThan(0)
+    expect(new Set(labels).size).toBe(labels.length)
   })
 
   test('opens a loop when its tile is clicked', async ({ page }) => {

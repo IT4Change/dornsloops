@@ -57,9 +57,26 @@ pr0gramm kennt keine Titel. Das Script nimmt den Tag mit der höchsten Confidenc
 
 Gespeichert werden alle Tags, die die API zu einem Post herausgibt — also genau
 die, die auch auf pr0gramm sichtbar sind — sortiert nach Confidence. Die
-Detailseite zeigt sie vollständig. Die Filterleiste auf der Startseite blendet
-zwei Sorten aus: Tags, die den Medientyp beschreiben (`video`, `sound`, `loop`,
-…), und solche, die nur an einem einzigen Loop hängen.
+Detailseite zeigt sie vollständig, in der Schreibweise des jeweiligen Posts.
+
+Welche Tags nichts über den Loop aussagen, steht an einer Stelle:
+[`content/generic-tags.json`](content/generic-tags.json). Die Liste nennt drei
+Sorten — den Medientyp (`video`, `sound`, `webm`, `musik`, …), die Herkunft
+(`oc`, `repost`) und die Einstufung des Posts (`sfw`, `nsfb`). Gelesen wird sie
+von beiden Seiten: das Ingest-Script überspringt diese Tags beim Titelraten, die
+Filterleiste zeigt sie nicht als Knopf. Wer einen Eintrag hinzufügt, ändert damit
+beides — und den Titel, den der *nächste* eingepflegte Loop bekommt; bereits
+geschriebene Titel bleiben, auch bei `--force`.
+
+Die Filterleiste lässt darüber hinaus weg, was nur an einem einzigen Loop hängt —
+sonst stünden dort mehrere hundert Knöpfe statt dreißig. Über die Detailseite ist
+ein solcher Tag trotzdem klickbar.
+
+pr0gramm kennt keine Groß-/Kleinschreibung bei Tags: derselbe Tag kommt als
+`Original Content` und `original content` zurück. Die Leiste fasst sie zu einem
+Knopf zusammen und zeigt die Schreibweise, die die meisten Loops verwenden (bei
+Gleichstand die des neuesten). Gefiltert wird entsprechend über alle
+Schreibweisen — die Zahl auf dem Knopf ist die Zahl der Loops, die er öffnet.
 
 ## Links teilen
 

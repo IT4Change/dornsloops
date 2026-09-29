@@ -93,13 +93,17 @@ describe('the loop', () => {
     expect(wrapper.get('.detail__title').text()).toBe('Loop 5')
   })
 
-  it('lists every tag, including the ones the wall’s filter bar hides', async () => {
+  it('lists every tag, in the spelling this loop carries', async () => {
     const wrapper = await mountLoop(1)
 
+    // Not the bar's list: `Video` and `Musik` are generic and hidden there, and `Sandstorm`
+    // is one of three spellings the bar folds into a single button. Here the post's own
+    // tags stand as pr0gramm handed them out.
     expect(wrapper.findAll('.detail__tag').map((button) => button.text())).toStrictEqual([
       'techno',
-      'sandstorm',
+      'Sandstorm',
       'Video',
+      'Musik',
     ])
   })
 })
@@ -233,6 +237,16 @@ describe('a tag on the detail page', () => {
 
     expect(useLoops().activeTag.value).toBe('techno')
     expect(routes()).toStrictEqual(['/'])
+  })
+
+  it('lands on the filter the bar would set, not on this loop’s spelling of it', async () => {
+    const wrapper = await mountLoop(1)
+    const { activeTag, loops } = useLoops()
+
+    await wrapper.findAll('.detail__tag')[1]!.trigger('click') // `Sandstorm` on this loop
+
+    expect(activeTag.value).toBe('sandstorm')
+    expect(loops.value.map((loop) => loop.id)).toStrictEqual([1, 2, 4])
   })
 })
 

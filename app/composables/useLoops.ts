@@ -1,11 +1,18 @@
+import genericTagList from '~~/content/generic-tags.json'
 import loopsData from '~~/content/loops.json'
 
 import type { Loop } from '~/types/loop'
 
 const STORAGE_KEY = 'dornsloops:prefs'
 
-/** Tags that are true of nearly every loop and therefore useless as a filter. */
-const HIDDEN_TAGS = new Set(['video', 'sound', 'loop', 'ton', 'mit ton', 'webm'])
+/**
+ * Tags that describe the medium, the provenance or the post's rating rather than the loop.
+ * The list lives in `content/` because the ingest script reads the same one to decide which
+ * tag can stand in for a title — two lists answering that question gave two answers, and
+ * `Musik` ended up a filter button while the title guesser called it meaningless.
+ * Everything in it is lower case; matching folds the tag first.
+ */
+const GENERIC_TAGS = new Set(genericTagList)
 
 const allLoops = (loopsData as Loop[]).slice()
 
@@ -21,7 +28,10 @@ const DEFAULT_PREFS: Preferences = {
 
 /** A tag and how many loops carry it. */
 export interface TagCount {
+  /** Folded to lower case — the identity every comparison runs against. */
   tag: string
+  /** The spelling the bar shows, picked from the ones the data actually uses. */
+  label: string
   count: number
 }
 
@@ -31,6 +41,33 @@ export interface Neighbours {
   next: Loop | null
   position: number
   total: number
+}
+
+/**
+ * One tag while it is being counted: how often each spelling of it was seen, and on how many
+ * loops it sits at all. The two are different numbers — see the loop that fills it.
+ */
+interface TagGroup {
+  spellings: Map<string, number>
+  count: number
+}
+
+/**
+ * Which spelling the bar shows for a tag. The most used one is the honest answer — it is
+ * how the data mostly writes it — and a tie goes to the one seen first, which is the
+ * spelling of the newest loop carrying it. `Map` keeps insertion order, so the strict `>`
+ * is what leaves the earlier one standing.
+ */
+function commonestSpelling(spellings: Map<string, number>): string {
+  let best = ''
+  let seen = 0
+  for (const [spelling, count] of spellings) {
+    if (count > seen) {
+      best = spelling
+      seen = count
+    }
+  }
+  return best
 }
 
 export interface Loops {
@@ -51,25 +88,44 @@ export function useLoops(): Loops {
   const prefs = useState<Preferences>('loops:prefs', () => ({ ...DEFAULT_PREFS }))
 
   const tags = computed(() => {
-    const counts = new Map<string, number>()
+    const groups = new Map<string, TagGroup>()
     for (const loop of allLoops) {
-      for (const tag of loop.tags) {
-        if (HIDDEN_TAGS.has(tag.toLowerCase())) {
+      // pr0gramm hands out `Feet` and `feet` as two tags, and a loop can carry both. The
+      // number on the button counts loops, not mentions, so each tag scores once per loop —
+      // while every spelling still gets its vote on how the button is written.
+      const counted = new Set<string>()
+      for (const spelling of loop.tags) {
+        const tag = spelling.toLowerCase()
+        if (GENERIC_TAGS.has(tag)) {
           continue
         }
-        counts.set(tag, (counts.get(tag) ?? 0) + 1)
+        const group = groups.get(tag) ?? { spellings: new Map<string, number>(), count: 0 }
+        group.spellings.set(spelling, (group.spellings.get(spelling) ?? 0) + 1)
+        if (!counted.has(tag)) {
+          counted.add(tag)
+          group.count += 1
+        }
+        groups.set(tag, group)
       }
     }
-    return [...counts.entries()]
-      .filter(([, count]) => count > 1)
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([tag, count]) => ({ tag, count }))
+    return [...groups.entries()]
+      .filter(([, group]) => group.count > 1)
+      .sort(([left, a], [right, b]) => b.count - a.count || left.localeCompare(right))
+      .map(([tag, group]) => ({
+        tag,
+        label: commonestSpelling(group.spellings),
+        count: group.count,
+      }))
   })
 
   /** The loops on screen — also the queue the detail page steps through. */
   const loops = computed(() => {
     const tag = activeTag.value
-    return tag === null ? allLoops : allLoops.filter((loop) => loop.tags.includes(tag))
+    // Folded, like the count that produced the button: an exact `includes` would leave the
+    // loops tagged `Original Content` out of a filter whose button says five.
+    return tag === null
+      ? allLoops
+      : allLoops.filter((loop) => loop.tags.some((entry) => entry.toLowerCase() === tag))
   })
 
   function byId(id: number): Loop | null {
@@ -97,8 +153,10 @@ export function useLoops(): Loops {
     }
   }
 
+  /** Folds what it is handed, so a tag pressed on the detail page hits the same filter. */
   function setTag(tag: string | null): void {
-    activeTag.value = activeTag.value === tag ? null : tag
+    const next = tag === null ? null : tag.toLowerCase()
+    activeTag.value = activeTag.value === next ? null : next
   }
 
   function loadPrefs(): void {
