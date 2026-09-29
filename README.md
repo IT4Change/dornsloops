@@ -143,13 +143,37 @@ das Formatierbare selbst auf.
 ### Unit
 
 Die Specs liegen neben der Datei, die sie prüfen (`x.ts` / `x.spec.ts`).
-[`vitest.config.ts`](vitest.config.ts) fährt sie in zwei Projekten: `app` in der
+[`vitest.config.ts`](vitest.config.ts) fährt sie in drei Projekten: `app` in der
 Nuxt-Umgebung (`@nuxt/test-utils`), `scripts` als nacktes Node — die
-Ingest-Skripte brauchen keine App, und die `.vue`-Dateien gehen ohne nicht.
+Ingest-Skripte brauchen keine App, und die `.vue`-Dateien gehen ohne nicht — und
+`content` für die Daten selbst.
 
 Wo eine Spur gegen `content/loops.json` liefe, steht stattdessen eine kleine
 Wand aus [`app/test/fixtures.ts`](app/test/fixtures.ts); sonst würde jeder neue
 Loop die Erwartungen verschieben.
+
+### Daten
+
+Genau eine Ausnahme davon, und zwar eine gewollte:
+[`content/loops.spec.mjs`](content/loops.spec.mjs) prüft die **echte**
+`content/loops.json`, denn sie ist die einzige Eingabe dieses Projekts und
+niemand liest sie zwischen `npm run add` und dem Deploy kritisch. Ein Eintrag,
+dessen Video gelöscht wurde, ist eine Kachel, die nichts abspielt, auf einer
+Seite, die mit 200 antwortet.
+
+Geprüft wird das Schema aus [`app/types/loop.ts`](app/types/loop.ts) — Felder und
+Typen, und ausdrücklich auch, dass *kein* unbekanntes Feld dasteht, damit ein neues
+Feld im Interface nicht ungeprüft bleibt —, eindeutige ids, die Sortierung nach
+Upload-Datum, die Schreibweise der Datei, und in beide Richtungen die
+Mediendateien: jeder Eintrag hat sein Video und sein Poster, jede Datei unter
+`public/loops/` gehört zu einem Eintrag. Die zweite Richtung ist die Hälfte einer
+Löschung, die sonst übrig bleibt — Eintrag weg, Video weiter ausgeliefert.
+
+```sh
+npx vitest run --project content   # nur die Daten
+```
+
+Diese Prüfung läuft in `test:unit` mit, also auch bei jedem `new loop`-Push.
 
 Die Coverage-Schwellen stehen pro Bereich, nicht als eine Zahl fürs Projekt:
 `app/**` hält 97 %, `scripts/ingest.mjs` deutlich weniger, weil dessen zweite
@@ -241,7 +265,9 @@ Original-Post und nennt den Uploader. Die Seite ist auf `noindex` gesetzt und
 verfolgt keinen kommerziellen Zweck. Eine Quellenangabe ist allerdings keine
 Lizenz: Wer die Entfernung eines Loops wünscht, bekommt sie — Eintrag aus
 `content/loops.json` und die zugehörigen Dateien aus `public/loops/` löschen,
-neu generieren, fertig.
+neu generieren, fertig. Dass beide Hälften wirklich passiert sind, sagt
+`npm run test:unit`: eine übrig gebliebene Datei wird dort genauso zum Fehler wie
+ein übrig gebliebener Eintrag.
 
 Der Code steht unter der [Apache-2.0-Lizenz](LICENSE); für die Mediendateien
 gilt sie ausdrücklich nicht.

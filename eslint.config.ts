@@ -142,6 +142,14 @@ export default [
     rules: { 'n/no-process-env': 'off' },
   },
   {
+    // The data spec walks `public/loops/` and stats the paths it finds in the committed
+    // JSON. Both are inputs of this repository, not of a request — the whole point is to
+    // read exactly the files that ship, and a literal path per loop would be the very list
+    // the file is supposed to be checked against.
+    files: ['content/**/*.spec.mjs'],
+    rules: { 'security/detect-non-literal-fs-filename': 'off' },
+  },
+  {
     files: ['scripts/**/*.mjs'],
     rules: {
       // Node's ESM resolver does not guess extensions, so a relative import has to carry

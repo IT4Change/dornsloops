@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
-    // Two projects rather than one environment for everything: the ingest scripts are plain
+    // Projects rather than one environment for everything: the ingest scripts are plain
     // Node and have no business booting a Nuxt app, and the `.vue` files cannot be tested
     // without one. Splitting them keeps the script suite at startup cost near zero.
     projects: [
@@ -11,6 +11,18 @@ export default defineConfig({
         test: {
           name: 'scripts',
           include: ['scripts/**/*.spec.mjs'],
+          environment: 'node',
+        },
+      },
+      {
+        test: {
+          // Its own project, not a file under `scripts`: what it checks is the committed
+          // data, and it has no module under test at all. It is also the one suite that
+          // reads the real `content/loops.json` instead of a fixture — `vitest --project
+          // content` is then the run that answers "is the wall's input sound", separately
+          // from "does the code work".
+          name: 'content',
+          include: ['content/**/*.spec.mjs'],
           environment: 'node',
         },
       },
