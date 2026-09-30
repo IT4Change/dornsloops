@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 import { openLoop, waitForHydration } from './helpers'
-import { FIRST, LAST, LONGEST, LOOPS, SECOND } from './loops'
+import { FIRST, LAST, LONGEST, LOOPS, MIXED, SECOND } from './loops'
 
 const detail = (id: number) => `/loop/${String(id)}`
 
@@ -39,6 +39,24 @@ test.describe('a loop page', () => {
   })
 })
 
+test.describe('a loop mixed from two posts', () => {
+  test('credits both of them in the markup a share link hands out', async ({ request }) => {
+    test.skip(MIXED.length === 0, 'no loop in content/loops.json carries an audioFix')
+
+    for (const loop of MIXED) {
+      const html = await (await request.get(detail(loop.id))).text()
+
+      // The credit has to stand in the prerendered HTML, not only after hydration: a mix
+      // uses somebody else's work twice, and a reader who never runs the JS still sees it.
+      expect(html, `loop ${String(loop.id)} credits the video's post`).toContain(loop.source.url)
+      expect(html, `loop ${String(loop.id)} credits the audio's post`).toContain(
+        loop.audioFix?.source.url,
+      )
+      expect(html, `loop ${String(loop.id)} says why`).toContain(loop.audioFix?.reason)
+    }
+  })
+})
+
 test.describe('the upload date', () => {
   // Fourteen hours ahead of the build host, which is where the two used to come apart: the
   // page is prerendered in the build's zone and read in the reader's. Vue says nothing
@@ -56,7 +74,11 @@ test.describe('the upload date', () => {
     // Without the wait the "hydrated" value would still be the prerendered markup and the
     // comparison would hold for the wrong reason.
     await openLoop(page, SECOND.id)
-    const hydrated = (await page.locator('dd').nth(2).textContent())?.trim()
+    // Addressed by its label, the way the regex above does it. `dd` by position followed
+    // whatever row the source block grew next — an `audioFix` on this very loop moved it.
+    const hydrated = (
+      await page.locator('.detail__source dt:text-is("Hochgeladen am") + dd').textContent()
+    )?.trim()
 
     expect(prerendered).toBe(berlin)
     expect(hydrated).toBe(berlin)

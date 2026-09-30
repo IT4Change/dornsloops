@@ -80,6 +80,8 @@ const FIELDS = {
     new Set(value).size === value.length,
   featured: (value) => typeof value === 'boolean',
   source: (value) => typeof value === 'object' && value !== null,
+  // Only the hand-mixed loops carry one, so absent is the normal case.
+  audioFix: (value) => value === undefined || (typeof value === 'object' && value !== null),
   width: isPositiveInt,
   height: isPositiveInt,
   duration: isPositiveNumber,
@@ -99,6 +101,32 @@ const SOURCE_FIELDS = {
   // Whatever credit the uploader gave, if any — a URL in the one case there is today, but
   // free text is just as valid a credit.
   original: (value) => value === null || isNonEmptyString(value),
+}
+
+const AUDIO_FIX_FIELDS = {
+  source: (value) => typeof value === 'object' && value !== null,
+  // Where in the other post's audio this loop starts. 0 is a legitimate answer, so this
+  // is the one number here that may not be positive.
+  offset: (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0,
+  // A rate far from 1 is a typo, not an edit: past roughly ±25 % the video no longer looks
+  // like the clip somebody wanted to keep.
+  videoRate: (value) => isPositiveNumber(value) && value >= 0.75 && value <= 1.25,
+  // Shown on the detail page, so it is prose a reader sees rather than an internal note.
+  reason: isNonEmptyString,
+}
+
+/** Applies a field map to one nested object and reports what is wrong or unknown. */
+function checkShape(value, fields, prefix, report) {
+  for (const [field, isValid] of Object.entries(fields)) {
+    if (!isValid(value[field])) {
+      report(`${prefix}.${field}`)
+    }
+  }
+  for (const field of Object.keys(value)) {
+    if (!(field in fields)) {
+      report(`${prefix}.${field} (unknown)`)
+    }
+  }
 }
 
 /**
@@ -135,17 +163,15 @@ describe('content/loops.json', () => {
         }
       }
 
-      if (typeof loop.source !== 'object' || loop.source === null) {
-        return
+      if (typeof loop.source === 'object' && loop.source !== null) {
+        checkShape(loop.source, SOURCE_FIELDS, 'source', report)
       }
-      for (const [field, isValid] of Object.entries(SOURCE_FIELDS)) {
-        if (!isValid(loop.source[field])) {
-          report(`source.${field}`)
-        }
-      }
-      for (const field of Object.keys(loop.source)) {
-        if (!(field in SOURCE_FIELDS)) {
-          report(`source.${field} (unknown)`)
+
+      if (typeof loop.audioFix === 'object' && loop.audioFix !== null) {
+        checkShape(loop.audioFix, AUDIO_FIX_FIELDS, 'audioFix', report)
+        // The replacement audio is a second credit, held to the same standard as the first.
+        if (typeof loop.audioFix.source === 'object' && loop.audioFix.source !== null) {
+          checkShape(loop.audioFix.source, SOURCE_FIELDS, 'audioFix.source', report)
         }
       }
     })
@@ -175,6 +201,18 @@ describe('content/loops.json', () => {
       }
       if (loop.poster !== `/loops/${String(loop.id)}.jpg`) {
         report('poster')
+      }
+    })
+
+    expect(offenders).toEqual([])
+  })
+
+  it('credits a different post for every replaced audio track', () => {
+    // An `audioFix` pointing back at the loop's own post says nothing, and the detail page
+    // would print the same credit twice — the shape a copy-paste while mixing leaves.
+    const offenders = offendersOf((loop, report) => {
+      if (loop.audioFix && loop.audioFix.source?.url === loop.source?.url) {
+        report('audioFix.source.url')
       }
     })
 

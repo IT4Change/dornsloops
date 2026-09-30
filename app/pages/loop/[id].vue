@@ -1,4 +1,6 @@
 <script setup lang="ts">
+  import type { LoopSource } from '~/types/loop'
+
   const route = useRoute()
   const router = useRouter()
   const { byId, neighbours, setTag } = useLoops()
@@ -66,6 +68,14 @@
         })
       : '',
   )
+
+  /**
+   * `pr0gramm.com/7058305` — built from the URL rather than from `loop.id`, so a loop
+   * whose audio comes from a second post labels both rows the same way.
+   */
+  function sourceLabel(source: LoopSource) {
+    return `${source.platform}.com/${source.url.split('/').pop() ?? ''}`
+  }
 
   /** Filtering from a detail page only makes sense back on the wall. */
   function filterByTag(tag: string) {
@@ -137,12 +147,23 @@
     </ul>
 
     <dl class="detail__source">
-      <dt>Quelle</dt>
+      <dt>{{ loop.audioFix ? 'Bild' : 'Quelle' }}</dt>
       <dd>
         <a :href="loop.source.url" target="_blank" rel="noopener noreferrer">
-          {{ loop.source.platform }}.com/{{ loop.id }} ↗
+          {{ sourceLabel(loop.source) }} ↗
         </a>
       </dd>
+
+      <template v-if="loop.audioFix">
+        <dt>Ton</dt>
+        <dd>
+          <a :href="loop.audioFix.source.url" target="_blank" rel="noopener noreferrer">
+            {{ sourceLabel(loop.audioFix.source) }} ↗
+          </a>
+          · {{ loop.audioFix.source.uploader }}
+          <p class="detail__note">{{ loop.audioFix.reason }}</p>
+        </dd>
+      </template>
 
       <dt>Hochgeladen von</dt>
       <dd>{{ loop.source.uploader }}</dd>
@@ -235,6 +256,12 @@
 
   .detail__source dd {
     margin: 0;
+  }
+
+  .detail__note {
+    margin: 0.2rem 0 0;
+    color: var(--fg-muted);
+    line-height: 1.45;
   }
 
   .detail__source a {

@@ -15,6 +15,7 @@ export interface Loop {
   width: number
   height: number
   source: { uploader: string; url: string; postedAt: string }
+  audioFix?: { source: { uploader: string; url: string }; reason: string }
 }
 
 export const LOOPS = JSON.parse(
@@ -25,6 +26,12 @@ export const LOOPS = JSON.parse(
 export const FIRST = LOOPS[0]!
 export const SECOND = LOOPS[1]!
 export const LAST = LOOPS[LOOPS.length - 1]!
+
+/**
+ * The loops that play a different post's audio. Empty is a legitimate state of the wall —
+ * the suite skips rather than fails when the last mix is taken out again.
+ */
+export const MIXED = LOOPS.filter((loop) => loop.audioFix)
 
 /**
  * A page step is a tenth of the loop, so the shortest ones move by barely a second — less

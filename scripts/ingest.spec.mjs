@@ -285,6 +285,45 @@ describe(ingestOne, () => {
     expect(loops[0].tags).toStrictEqual(['fresh tag'])
   })
 
+  it('refuses to re-download a loop whose audio was replaced by hand', async () => {
+    // `--force` without `--metadata-only` is the one call that would put the broken
+    // original back over a mixed file — and the mix is not in the API, so nothing could
+    // restore it. The guard has to hold without the caller naming it.
+    fetchItem.mockResolvedValue({ user: 'renamed', created: 1759000000, source: '', audio: true })
+    fetchTags.mockResolvedValue(['fresh tag'])
+    const audioFix = {
+      source: {
+        platform: 'pr0gramm',
+        url: 'https://pr0gramm.com/new/7058305',
+        uploader: 'somebody else',
+        postedAt: '2026-06-25T22:35:18.000Z',
+        original: null,
+      },
+      offset: 14.4837,
+      videoRate: 1.052632,
+      reason: 'This post runs at 95 % speed and its audio stops at 7.5 kHz.',
+    }
+    const loops = [storedLoop({ audioFix })]
+
+    await expect(
+      ingestOne('7077671', { loops, options: { ...options, force: true } }),
+    ).resolves.toStrictEqual({ status: 'refreshed' })
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('carries an audio fix'))
+    // Tags and credit move, everything that describes the file on disk does not.
+    expect(loops[0]).toStrictEqual(
+      storedLoop({
+        audioFix,
+        tags: ['fresh tag'],
+        source: {
+          ...storedLoop().source,
+          uploader: 'renamed',
+          postedAt: '2025-09-27T19:06:40.000Z',
+        },
+      }),
+    )
+  })
+
   it('rejects an input that is not a pr0gramm item at all', async () => {
     await expect(ingestOne('nonsense', { loops: [], options })).rejects.toThrow(
       'Cannot extract a pr0gramm item id',

@@ -78,6 +78,41 @@ Knopf zusammen und zeigt die Schreibweise, die die meisten Loops verwenden (bei
 Gleichstand die des neuesten). Gefiltert wird entsprechend über alle
 Schreibweisen — die Zahl auf dem Knopf ist die Zahl der Loops, die er öffnet.
 
+## Ton aus einem anderen Post
+
+Manche Loops sind sehenswert und klingen trotzdem nicht: ein Repost, der
+zweimal durch eine Transkodierung gelaufen ist, oder — häufiger als man denkt —
+ein Clip, der um 5 % verlangsamt wurde, damit ihn die Repost-Erkennung nicht
+findet. Läuft derselbe Track in einem anderen Post sauber, darf ein Loop Bild und
+Ton aus zwei Quellen mischen. Das steht dann im optionalen Feld `audioFix`:
+
+```json
+"audioFix": {
+  "source": { "platform": "pr0gramm", "url": "…/7058305", "uploader": "…", "postedAt": "…", "original": null },
+  "offset": 14.4837,
+  "videoRate": 1.052632,
+  "reason": "Dieser Post läuft auf 95 % Geschwindigkeit und sein Ton bricht bei 7,5 kHz ab; …"
+}
+```
+
+`offset` ist die Sekunde, an der der Loop im Ton des anderen Posts einsetzt,
+`videoRate` der Faktor, mit dem das Bild dafür umgetaktet wurde (`1` = unangetastet),
+`reason` die Begründung — sie steht auf der Detailseite, ist also Text für Leser
+und keine interne Notiz. Die Detailseite nennt in diesem Fall beide Quellen,
+überschrieben mit **Bild** und **Ton** statt mit **Quelle**.
+
+Geschrieben wird das Feld ausschließlich von Hand; das Ingest-Script kennt keinen
+Mix. Es behandelt `audioFix` deshalb wie `title` und `featured` als kuratiert —
+und weil ein erneuter Download die Mediendatei durch das kaputte Original
+ersetzen würde, rührt selbst `--force` bei einem Loop mit `audioFix` die Dateien
+nicht an, sondern zieht nur Tags und Quellenangabe nach. Was am `audioFix` selbst
+steht, aktualisiert niemand: die Angaben zum zweiten Post veralten wie der
+Kommentar, der sie erklärt.
+
+Wer so einen Mix baut, hält die drei Dinge nach, die ihn unauffällig machen:
+Tempo und Tonhöhe des Tracks, der Pegel des Loops, den er ersetzt (die Wand
+mischt nichts nach), und ein Bild, das mit dem Ton nicht auseinanderläuft.
+
 ## Links teilen
 
 Jede Loop-Seite bringt Open-Graph-Metadaten mit: Titel, Poster als Vorschaubild

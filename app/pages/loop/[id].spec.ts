@@ -86,6 +86,31 @@ describe('the loop', () => {
     expect(wrapper.get('.detail__source').text()).not.toContain('Originalquelle')
   })
 
+  it('credits both posts when the audio comes from a second one', async () => {
+    const wrapper = await mountLoop(2)
+    const block = wrapper.get('.detail__source')
+    const links = wrapper.findAll('.detail__source a')
+
+    // Two credits, and neither is called "Quelle" any more — with a mixed loop that word
+    // would have to mean two different posts at once.
+    expect(block.text()).not.toContain('Quelle')
+    expect(links.map((link) => link.attributes('href'))).toStrictEqual([
+      'https://pr0gramm.com/new/2',
+      'https://pr0gramm.com/new/222',
+    ])
+    expect(links[1]!.text()).toBe('pr0gramm.com/222 ↗')
+    expect(block.text()).toContain('somebody else')
+    expect(wrapper.get('.detail__note').text()).toBe('Der eigene Ton dieses Posts ist kaputt.')
+  })
+
+  it('keeps one plain credit for a loop that plays its own audio', async () => {
+    const wrapper = await mountLoop(3)
+
+    expect(wrapper.get('.detail__source').text()).toContain('Quelle')
+    expect(wrapper.findAll('.detail__source a')).toHaveLength(1)
+    expect(wrapper.find('.detail__note').exists()).toBe(false)
+  })
+
   it('shows no tag list at all for a loop pr0gramm has no tags for', async () => {
     const wrapper = await mountLoop(5)
 
