@@ -80,8 +80,9 @@ const FIELDS = {
     new Set(value).size === value.length,
   featured: (value) => typeof value === 'boolean',
   source: (value) => typeof value === 'object' && value !== null,
-  // Only the hand-mixed loops carry one, so absent is the normal case.
+  // Only the hand-mixed and the hand-cut loops carry these, so absent is the normal case.
   audioFix: (value) => value === undefined || (typeof value === 'object' && value !== null),
+  edit: (value) => value === undefined || (typeof value === 'object' && value !== null),
   width: isPositiveInt,
   height: isPositiveInt,
   duration: isPositiveNumber,
@@ -113,6 +114,14 @@ const AUDIO_FIX_FIELDS = {
   videoRate: (value) => isPositiveNumber(value) && value >= 0.75 && value <= 1.25,
   // Shown on the detail page, so it is prose a reader sees rather than an internal note.
   reason: isNonEmptyString,
+}
+
+const EDIT_FIELDS = {
+  // Shown on the detail page, so it is prose a reader sees rather than an internal note.
+  reason: isNonEmptyString,
+  // An edit that removed nothing did not happen, and one that removed the whole loop is a
+  // slipped decimal point — the check below pins the upper end against the real duration.
+  shortenedBy: isPositiveNumber,
 }
 
 /** Applies a field map to one nested object and reports what is wrong or unknown. */
@@ -167,6 +176,10 @@ describe('content/loops.json', () => {
         checkShape(loop.source, SOURCE_FIELDS, 'source', report)
       }
 
+      if (typeof loop.edit === 'object' && loop.edit !== null) {
+        checkShape(loop.edit, EDIT_FIELDS, 'edit', report)
+      }
+
       if (typeof loop.audioFix === 'object' && loop.audioFix !== null) {
         checkShape(loop.audioFix, AUDIO_FIX_FIELDS, 'audioFix', report)
         // The replacement audio is a second credit, held to the same standard as the first.
@@ -213,6 +226,19 @@ describe('content/loops.json', () => {
     const offenders = offendersOf((loop, report) => {
       if (loop.audioFix && loop.audioFix.source?.url === loop.source?.url) {
         report('audioFix.source.url')
+      }
+    })
+
+    expect(offenders).toEqual([])
+  })
+
+  it('cut less from every edited loop than the loop is long', () => {
+    // `shortenedBy` is the only field that can be checked against another one: an edit that
+    // took more than what is left is a decimal point in the wrong place, and the number is
+    // nowhere near obvious enough for a reader to catch it by eye.
+    const offenders = offendersOf((loop, report) => {
+      if (loop.edit && !(loop.edit.shortenedBy < loop.duration)) {
+        report('edit.shortenedBy')
       }
     })
 

@@ -268,17 +268,18 @@ export async function ingestOne(input, { loops, options }) {
     console.log(`  ${id}  has no audio track — importing anyway`)
   }
 
-  // A loop with an `audioFix` plays a different post's audio and was mixed by hand.
-  // Re-downloading it would silently put the broken original back, so its media is off
-  // limits however hard --force insists.
-  const mediaIsCurated = Boolean(existing?.audioFix)
-  if (mediaIsCurated && !options.metadataOnly) {
-    console.log(`  ${id}  carries an audio fix — media left untouched`)
+  // `audioFix` and `edit` both mark a media file this script did not produce and cannot
+  // produce again — a mix from two posts, a trim, a crossfade at the wrap. Re-downloading
+  // would silently put the untouched original back, so the file is off limits however hard
+  // --force insists.
+  const curated = ['audioFix', 'edit'].filter((field) => existing?.[field])
+  if (curated.length > 0 && !options.metadataOnly) {
+    console.log(`  ${id}  carries ${curated.join(' and ')} — media left untouched`)
   }
 
   // Tags and credits change over time; refreshing them should not mean
   // re-downloading and re-encoding hundreds of megabytes.
-  if (existing && (options.metadataOnly || mediaIsCurated)) {
+  if (existing && (options.metadataOnly || curated.length > 0)) {
     existing.tags = tags
     existing.source = describeSource(id, item)
     console.log(`  ${id}  metadata refreshed (${tags.length} tags)`)

@@ -102,16 +102,42 @@ und keine interne Notiz. Die Detailseite nennt in diesem Fall beide Quellen,
 überschrieben mit **Bild** und **Ton** statt mit **Quelle**.
 
 Geschrieben wird das Feld ausschließlich von Hand; das Ingest-Script kennt keinen
-Mix. Es behandelt `audioFix` deshalb wie `title` und `featured` als kuratiert —
-und weil ein erneuter Download die Mediendatei durch das kaputte Original
-ersetzen würde, rührt selbst `--force` bei einem Loop mit `audioFix` die Dateien
-nicht an, sondern zieht nur Tags und Quellenangabe nach. Was am `audioFix` selbst
-steht, aktualisiert niemand: die Angaben zum zweiten Post veralten wie der
-Kommentar, der sie erklärt.
+Mix. Was am `audioFix` selbst steht, aktualisiert niemand: die Angaben zum
+zweiten Post veralten wie der Kommentar, der sie erklärt.
 
 Wer so einen Mix baut, hält die drei Dinge nach, die ihn unauffällig machen:
 Tempo und Tonhöhe des Tracks, der Pegel des Loops, den er ersetzt (die Wand
 mischt nichts nach), und ein Bild, das mit dem Ton nicht auseinanderläuft.
+
+## Sauber schließende Loops
+
+Die Wand spielt jeden Loop endlos, also entscheidet die Naht zwischen letztem und
+erstem Bild, ob man die Wiederholung bemerkt. Vier Dinge verraten sie: Stille an
+einem der beiden Enden, ein Knacken durch einen Sprung in der Wellenform, ein
+Bildsprung — und eine Länge, die mitten im Takt endet.
+
+Was sich davon durch einen Schnitt beheben lässt, steht im optionalen Feld `edit`:
+
+```json
+"edit": {
+  "reason": "Die Musik brach 0,17 s vor Schluss ab und ließ ein Loch im Umschlag; …",
+  "shortenedBy": 0.36
+}
+```
+
+`shortenedBy` ist die Zahl der Sekunden, die der Schnitt gegenüber der
+eingepflegten Datei gekostet hat, `reason` wieder Text für Leser — die
+Detailseite zeigt ihn als Zeile **Schnitt**. Einen Bildsprung, für den es im Clip
+kein passendes Ausstiegsbild gibt, schließt eine kurze Kreuzblende: der Anfang
+wird über das Ende gelegt und fällt dafür aus der Ausgabe, sodass das letzte Bild
+das erste ist.
+
+`audioFix` und `edit` haben dieselbe Konsequenz für das Ingest-Script: beide
+markieren eine Mediendatei, die es nicht erzeugt hat und nicht wiederherstellen
+könnte. Es behandelt sie wie `title` und `featured` als kuratiert, und selbst
+`--force` rührt bei einem Loop mit einem der beiden Felder die Dateien nicht an,
+sondern zieht nur Tags und Quellenangabe nach — und sagt in der Ausgabe, welches
+der Felder es aufgehalten hat.
 
 ## Links teilen
 

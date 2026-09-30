@@ -165,6 +165,11 @@
         </dd>
       </template>
 
+      <template v-if="loop.edit">
+        <dt>Schnitt</dt>
+        <dd>{{ loop.edit.reason }}</dd>
+      </template>
+
       <dt>Hochgeladen von</dt>
       <dd>{{ loop.source.uploader }}</dd>
 

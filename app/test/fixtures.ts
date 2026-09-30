@@ -47,8 +47,8 @@ export function makeLoop(overrides: Partial<Loop> = {}): Loop {
  * - `solo` sits on a single loop, below the bar's threshold;
  * - only loop 4 credits an earlier source, and loop 5 has no tags at all — pr0gramm hands
  *   those out too;
- * - only loop 2 carries an `audioFix`, so the detail page has one loop with two credits to
- *   print and four with one.
+ * - loop 2 carries an `audioFix` and loop 4 an `edit`, never the same loop: the detail page
+ *   has to print each of the two extra rows on its own as well as neither.
  *
  * Four minutes in total.
  */
@@ -84,6 +84,7 @@ export const WALL: readonly Loop[] = [
     tags: ['SANDSTORM', 'Chill', 'solo', 'loop'],
     duration: 15,
     source: { ...makeLoop({ id: 4 }).source, original: 'https://youtube.com/watch?v=x' },
+    edit: { reason: 'Am Ende hing eine Sekunde Stille.', shortenedBy: 1 },
   }),
   makeLoop({ id: 5, title: 'Loop 5', tags: [], duration: 60 }),
 ]

@@ -309,7 +309,7 @@ describe(ingestOne, () => {
       ingestOne('7077671', { loops, options: { ...options, force: true } }),
     ).resolves.toStrictEqual({ status: 'refreshed' })
 
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('carries an audio fix'))
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('carries audioFix'))
     // Tags and credit move, everything that describes the file on disk does not.
     expect(loops[0]).toStrictEqual(
       storedLoop({
@@ -322,6 +322,30 @@ describe(ingestOne, () => {
         },
       }),
     )
+  })
+
+  it('refuses to re-download a loop that was cut by hand, and names both reasons', async () => {
+    // The second marker of a media file this script cannot produce again. A loop can carry
+    // one, the other or both — the message has to say which, or the run reads as if --force
+    // simply did nothing.
+    fetchItem.mockResolvedValue({ user: 'someone', created: 1759000000, source: '', audio: true })
+    fetchTags.mockResolvedValue(['fresh tag'])
+    const edit = { reason: 'Am Ende hing eine Sekunde Stille.', shortenedBy: 1 }
+    const loops = [storedLoop({ edit }), storedLoop({ id: 6447228, edit, audioFix: {} })]
+
+    await expect(
+      ingestOne('7077671', { loops, options: { ...options, force: true } }),
+    ).resolves.toStrictEqual({ status: 'refreshed' })
+    await expect(
+      ingestOne('6447228', { loops, options: { ...options, force: true } }),
+    ).resolves.toStrictEqual({ status: 'refreshed' })
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('7077671  carries edit'))
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('6447228  carries audioFix and edit'),
+    )
+    expect(loops[0].bytes).toBe(storedLoop().bytes)
+    expect(loops[0].edit).toStrictEqual(edit)
   })
 
   it('rejects an input that is not a pr0gramm item at all', async () => {

@@ -111,6 +111,19 @@ describe('the loop', () => {
     expect(wrapper.find('.detail__note').exists()).toBe(false)
   })
 
+  it('says what a hand-cut loop had cut out of it', async () => {
+    const wrapper = await mountLoop(4)
+
+    expect(wrapper.get('.detail__source').text()).toContain('Schnitt')
+    expect(wrapper.get('.detail__source').text()).toContain('Am Ende hing eine Sekunde Stille.')
+  })
+
+  it('says nothing about a cut for a loop that came out of the ingest as it is', async () => {
+    const wrapper = await mountLoop(3)
+
+    expect(wrapper.get('.detail__source').text()).not.toContain('Schnitt')
+  })
+
   it('shows no tag list at all for a loop pr0gramm has no tags for', async () => {
     const wrapper = await mountLoop(5)
 

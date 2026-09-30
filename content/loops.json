@@ -609,12 +609,16 @@
       "postedAt": "2026-07-15T17:08:25.000Z",
       "original": null
     },
+    "edit": {
+      "reason": "Der Umschlag sprang aus einer Nahaufnahme in die Totale; die letzten 0,6 s blenden jetzt in den Anfang über, der dafür wegfällt.",
+      "shortenedBy": 0.62
+    },
     "width": 360,
     "height": 640,
-    "duration": 15.02,
+    "duration": 14.4,
     "video": "/loops/7077505.mp4",
     "poster": "/loops/7077505.jpg",
-    "bytes": 904936,
+    "bytes": 1107873,
     "variant": "h264-low_res",
     "addedAt": "2026-07-28T09:08:34.446Z"
   },
@@ -669,12 +673,16 @@
       "postedAt": "2026-07-08T19:50:12.000Z",
       "original": null
     },
+    "edit": {
+      "reason": "Die Musik brach 0,17 s vor Schluss ab und ließ ein Loch im Umschlag; der Loop endet jetzt auf dem Beat davor.",
+      "shortenedBy": 0.36
+    },
     "width": 640,
     "height": 480,
-    "duration": 7.49,
+    "duration": 7.13,
     "video": "/loops/7070584.mp4",
     "poster": "/loops/7070584.jpg",
-    "bytes": 701061,
+    "bytes": 804030,
     "variant": "h264-low_res",
     "addedAt": "2026-07-28T09:08:35.292Z"
   },
@@ -1230,12 +1238,16 @@
       "postedAt": "2022-11-30T23:21:38.000Z",
       "original": null
     },
+    "edit": {
+      "reason": "Der Ton lief ungefadet ins letzte Sample und knackte beim Umschlag; der Loop endet jetzt auf dem Beat davor.",
+      "shortenedBy": 0.29
+    },
     "width": 412,
     "height": 720,
-    "duration": 11.59,
+    "duration": 11.29,
     "video": "/loops/5438998.mp4",
     "poster": "/loops/5438998.jpg",
-    "bytes": 3094272,
+    "bytes": 2861070,
     "variant": "original",
     "addedAt": "2026-07-28T10:19:55.181Z"
   }

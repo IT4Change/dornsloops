@@ -29,6 +29,20 @@ export interface LoopAudioFix {
   reason: string
 }
 
+/**
+ * Records a hand edit to the media file itself — a trim to where the music actually ends, a
+ * crossfade that closes the wrap — done so the loop repeats without a seam.
+ *
+ * Carries the same consequence as [LoopAudioFix]: the ingest cannot reproduce the edit, so
+ * the file is off limits to a re-download.
+ */
+export interface LoopEdit {
+  /** What was done and why, in one line. Shown on the detail page. */
+  reason: string
+  /** Seconds the edit removed, measured against the file the ingest wrote. */
+  shortenedBy: number
+}
+
 export interface Loop {
   id: number
   title: string
@@ -37,6 +51,8 @@ export interface Loop {
   source: LoopSource
   /** Set only on the handful of loops that play a different post's audio. */
   audioFix?: LoopAudioFix
+  /** Set only on loops whose media file was edited by hand after the ingest. */
+  edit?: LoopEdit
   width: number
   height: number
   /** Seconds. */
