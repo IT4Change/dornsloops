@@ -1,0 +1,68 @@
+name: dependabot:auto-merge
+
+# `pull_request_target`, not `pull_request`: a Dependabot-triggered `pull_request` run gets a
+# read-only GITHUB_TOKEN and no access to regular Actions secrets (Dependabot runs read from a
+# separate secret store), so `secrets.RELEASE_APP_PRIVATE_KEY` would resolve to an empty string.
+#
+# `pull_request_target` runs with the base branch's secrets, which is only dangerous when the job
+# executes code from the pull request. This one checks out nothing and runs nothing from the branch;
+# the only value it takes from the payload is `html_url`, which GitHub composes, and it reaches the
+# shell through an env var rather than expression interpolation. The workflow definition that runs
+# is always the base branch's, so a pull request cannot edit this file to arm a merge for itself.
+on: pull_request_target
+
+# Nothing here uses GITHUB_TOKEN; the app token below carries the rights, narrowed where it is minted.
+permissions: {}
+
+jobs:
+  auto-merge:
+    name: approve + enable auto-merge
+    # `pull_request.user.login`, not `github.actor`: the actor changes when a human re-runs the
+    # workflow, the pull request's author does not.
+    if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      # it4c-release-bot instead of GITHUB_TOKEN: GitHub performs the later auto-merge on behalf of
+      # the actor that armed it, and a push by github-actions[bot] starts no workflow runs. With the
+      # app as pusher, master gets its own test run after every bump, like after any other push.
+      #
+      # Pinned to a SHA unlike the other workflows, because this step holds the app's private key.
+      # Dependabot keeps the SHA and the version comment current.
+      - name: Generate it4c-release-bot token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          # Without these the token inherits all of the installation's permissions.
+          #   contents      — performs the merge commit on master
+          #   pull-requests — approves the pull request and flags it for auto-merge
+          permission-contents: write
+          permission-pull-requests: write
+
+      # The master ruleset currently requires no approvals, so this does not gate anything today. It
+      # marks the pull request as reviewed by automation and keeps auto-merge working should the
+      # ruleset ever require an approval again: it counts because the app is a different actor than
+      # the author (GitHub only rejects self-approval). It would not satisfy a CODEOWNERS
+      # requirement — the merge would then simply wait.
+      #
+      # What actually gates a bump are the required status checks. Runs on every `synchronize` too,
+      # so an approval dismissed as stale is re-issued after Dependabot force-pushes a rebase.
+      - name: Approve
+        run: gh pr review --approve "${PR_URL}"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      # `--auto` does not merge now: GitHub merges once every REQUIRED status check has passed. The
+      # `master` ruleset is therefore the actual gate, not this file — remove its required checks
+      # and `--auto` merges immediately, untested. It does not deploy: that only happens when
+      # someone merges the release pull request (see `release.yml`).
+      #
+      # Merged as it4c-release-bot, the push to master starts `release.yml` like any other, so the
+      # bump lands in the open release pull request.
+      - name: Enable auto-merge
+        run: gh pr merge --auto --squash "${PR_URL}"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
