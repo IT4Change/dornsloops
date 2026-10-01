@@ -1,0 +1,48 @@
+# Every pull request opened here is armed for auto-merge by `workflows/dependabot-auto-merge.yml`,
+# so the required status checks on master are the only review a bump gets. See that file.
+#
+# `rebase-strategy` is left at its default ("auto"): a pull request that has fallen into conflict
+# with master would otherwise never merge and just sit there. Dependabot only rebases on its weekly
+# run or when a push to master puts the pull request in CONFLICT, not on every push.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    open-pull-requests-limit: 99
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: 'saturday'
+      timezone: 'Europe/Berlin'
+      time: '03:00'
+
+  - package-ecosystem: npm
+    open-pull-requests-limit: 99
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: 'saturday'
+      timezone: 'Europe/Berlin'
+      time: '03:00'
+    groups:
+      # `@nuxt/test-utils` tracks nuxt's internals closely enough that the two are best moved together.
+      nuxt:
+        applies-to: version-updates
+        patterns:
+          - 'nuxt'
+          - '@nuxt*'
+      # `@vitest/coverage-v8` pins its `vitest` peer to an exact version, so a pull request moving only
+      # one of the two can never install — `npm ci` fails with ERESOLVE before a single test runs.
+      vitest:
+        applies-to: version-updates
+        patterns:
+          - 'vitest'
+          - '@vitest*'
+      # `applies-to` defaults to version-updates, so the group above leaves security updates ungrouped
+      # and the exact peer pin bites again. This only half closes the gap: a security group bundles the
+      # packages that are themselves vulnerable, so an advisory against `vitest` alone still arrives as
+      # a single-package pull request that fails in CI and needs its partner added by hand.
+      vitest-security:
+        applies-to: security-updates
+        patterns:
+          - 'vitest'
+          - '@vitest*'
