@@ -1,6 +1,6 @@
 {
   "name": "dornsloops",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A wall of short video loops, self-hosted with a credit to every source.",
   "private": true,
   "type": "module",
