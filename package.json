@@ -46,7 +46,7 @@
     "eslint-config-it4c": "^0.13.2",
     "happy-dom": "^20.14.5",
     "prettier": "^3.9.9",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^5.0.2",
     "vue-tsc": "^3.3.11"
   }
