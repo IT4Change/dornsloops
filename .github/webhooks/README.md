@@ -1,8 +1,18 @@
 # Webhook Deployment
 
 Automatisches Deployment via GitHub Webhook auf einem Alpine-Linux-Server.
-Der Hook lauscht auf **Pushes auf `master`** und deployt nach jedem Push
-den aktuellen Stand von `origin/master`.
+Der Hook lauscht auf **veröffentlichte GitHub-Releases** und deployt genau
+das Tag des Releases. Ein Push auf `master` allein deployt nichts mehr.
+
+Releases entstehen über [release-please](https://github.com/googleapis/release-please)
+([`release.yml`](../workflows/release.yml)): Jeder Push auf `master` aktualisiert
+einen offenen Release-PR mit Versionssprung und `CHANGELOG.md`. **Erst das
+manuelle Mergen dieses PRs** erzeugt Tag und Release, und das Release löst den
+Deploy aus. Die Version leitet release-please aus den Conventional-Commit-Titeln
+der gemergten PRs ab (`feat` → Minor, `fix` → Patch, `!` → Major); im Changelog
+erscheinen alle Typen, auch `build(deps)` und `chore`. Konfiguration:
+[`.github/release-please/`](../release-please/). Tags tragen kein `v`-Präfix,
+also `1.4.0`.
 
 Die Seite ist ein statischer Build (`npm run generate`) — es läuft **kein
 Node-Prozess** in Produktion, nginx liefert die Dateien direkt aus. Damit
@@ -12,20 +22,27 @@ entfällt pm2 komplett.
 
 | Datei                  | Zweck                                                          |
 |------------------------|----------------------------------------------------------------|
-| `hooks.json.template`  | Konfiguration für [`webhook`](https://github.com/adnanh/webhook) -- prüft HMAC-SHA256-Signatur und `ref == "refs/heads/master"`, ruft dann `deploy.sh` auf |
-| `deploy.sh`            | `git reset --hard origin/master`, Build (`npm ci && npm run generate`) und atomares Umschalten auf das neue Release |
-| `poll.sh`              | Alternative für Hosts, die GitHub nicht erreichen kann: prüft per cron, ob `origin/master` sich bewegt hat, und ruft dann `deploy.sh` |
+| `hooks.json.template`  | Konfiguration für [`webhook`](https://github.com/adnanh/webhook) -- prüft HMAC-SHA256-Signatur, Event `release` und `action == "published"`, ruft dann `deploy.sh <tag>` auf |
+| `deploy.sh`            | Checkout des Release-Tags, Build (`npm ci && npm run generate`) und atomares Umschalten auf das neue Release |
+| `poll.sh`              | Alternative für Hosts, die GitHub nicht erreichen kann: prüft per cron, ob es ein neueres Release-Tag gibt, und ruft dann `deploy.sh` |
 | `nginx.conf.template`  | vhost: liefert `releases/current`, Cache-Header für Medien und Build-Assets, Proxy für den Webhook |
 | `webhook.template`     | OpenRC-Init-Skript für den `webhook`-Daemon                    |
 | `.gitignore`           | Hält die ausgefüllte `hooks.json` (Secret!) aus dem Repo       |
 
 ## Releases und atomares Umschalten
 
-`deploy.sh` baut nach `.output/public` und veröffentlicht das Ergebnis in
-`releases/<zeitstempel>/` — der Zeitstempel ist UTC im Format
-`YYYYMMDDHHMMSS`, also etwa `20260728113000`. Das Format ist nicht beliebig:
-`deploy.sh` findet alte Releases über `-name '2*'` und sortiert sie
-lexikografisch. Erst wenn der Build durchgelaufen ist und eine
+`deploy.sh` checkt das Tag aus (detached), baut nach `.output/public` und
+veröffentlicht das Ergebnis in `releases/<zeitstempel>-<tag>/` — der
+Zeitstempel ist UTC im Format `YYYYMMDDHHMMSS`, also etwa
+`20260728113000-1.4.0`. Das Format ist nicht beliebig: `deploy.sh` findet alte
+Releases über `-name '2*'` und sortiert sie lexikografisch, der Zeitstempel muss
+also vorne stehen. Das Tag dahinter zeigt beim Rollback, welche Version ein
+Verzeichnis ist.
+
+Ohne Argument deployt `deploy.sh` das neueste Release-Tag, das in
+`origin/master` enthalten ist — nie einen Branch-Stand. Ein Tag, das nicht auf
+`master` liegt, oder ein Argument, das keine Version `X.Y.Z` ist, bricht ab,
+bevor irgendetwas ausgecheckt wird. Erst wenn der Build durchgelaufen ist und eine
 `index.html` existiert, wandert der Symlink `releases/current` auf das neue
 Verzeichnis — nginx serviert also nie ein halbfertiges Build.
 
@@ -49,13 +66,13 @@ Rollback ist ein Symlink-Wechsel — `ls` nennt die verfügbaren Ziele:
 
 ```sh
 ls $RELEASES_DIR
-ln -sfn "$RELEASES_DIR/20260728113000" "$RELEASES_DIR/current"
+ln -sfn "$RELEASES_DIR/20260728113000-1.4.0" "$RELEASES_DIR/current"
 ```
 
 Der Pfad muss **absolut** sein, so wie `deploy.sh` ihn selbst schreibt: ein
 relatives Ziel löst der Symlink gegen sein eigenes Verzeichnis auf, `ln -sfn
 releases/… releases/current` zeigt also ins Leere. Wer lieber relativ arbeitet,
-wechselt vorher hinein: `cd $RELEASES_DIR && ln -sfn 20260728113000 current`.
+wechselt vorher hinein: `cd $RELEASES_DIR && ln -sfn 20260728113000-1.4.0 current`.
 
 | Variable               | Default                  | Bedeutung                          |
 |------------------------|--------------------------|------------------------------------|
@@ -87,7 +104,7 @@ Vor dem Deployment in `hooks.json`, `nginx.conf` und im OpenRC-Skript ersetzen:
 | `$WEBHOOK_GITHUB_SECRET`  | Shared Secret, identisch zur Konfiguration in GitHub     |
 
 Der Deploy läuft bewusst **nicht als root**: `npm ci` führt Install-Skripte aus
-dem Dependency-Baum aus, und ein Push löst das automatisch aus.
+dem Dependency-Baum aus, und ein Release löst das automatisch aus.
 
 Der Checkout darf außerdem **nicht unterhalb von `/root`** liegen. Das
 Verzeichnis ist `0700`, der `nginx`-User kommt nicht hindurch und jeder Request
@@ -153,8 +170,9 @@ su -s /bin/sh dornsloops -c 'crontab -e'
 */5 * * * * /var/www/dornsloops/.github/webhooks/poll.sh >> /var/log/dornsloops-poll.log 2>&1
 ```
 
-`poll.sh` vergleicht `origin/master` mit dem lokalen Stand und ruft `deploy.sh`
-nur bei einer Änderung. Ein Verzeichnis-Lock verhindert, dass ein noch laufender
+`poll.sh` vergleicht das neueste Release-Tag auf `origin/master` mit dem
+ausgecheckten Commit und ruft `deploy.sh` nur, wenn sie sich unterscheiden.
+Solange es noch kein Release gibt, tut es nichts. Ein Verzeichnis-Lock verhindert, dass ein noch laufender
 Build vom nächsten Tick überholt wird.
 
 **Speicher:** Der Nuxt-Build braucht deutlich mehr RAM als die fertige Seite.
@@ -175,22 +193,48 @@ Repository → **Settings → Webhooks → Add webhook**:
 | Content type      | `application/json`                         |
 | Secret            | identisch zu `$WEBHOOK_GITHUB_SECRET`      |
 | SSL verification  | enabled                                    |
-| Events            | **Just the push event**                    |
+| Events            | **Send me everything**                     |
 | Active            | [x]                                        |
+
+GitHub schickt alle Events, gefiltert wird erst auf dem Server in `hooks.json`.
+So bleibt die GitHub-Seite unverändert, wenn sich ändert, worauf deployt wird.
+Gefiltert wird deshalb auch auf den Event-Typ (`X-GitHub-Event: release`), nicht
+nur auf `action == "published"`: Andere Events kennen dieselbe Aktion
+(`package`, `registry_package`), haben aber kein `release.tag_name`.
+`deploy.sh` bekäme dann kein Argument und würde das neueste Release erneut
+deployen.
 
 ## Ablauf
 
-1. Push auf `master` landet auf GitHub.
-2. GitHub schickt einen signierten `push`-Payload an `/hooks/github`.
-3. `webhook` validiert die HMAC-SHA256-Signatur und prüft `ref == "refs/heads/master"`. Pushes auf andere Branches werden ignoriert.
-4. `deploy.sh` synchronisiert das Arbeitsverzeichnis mit `origin/master` (`git reset --hard`), baut die Seite (`npm ci && npm run generate`), veröffentlicht sie in ein neues Release und schwenkt `current` darauf um.
+1. Ein PR wird auf `master` gemergt; `release.yml` aktualisiert den Release-PR.
+2. Jemand mergt den Release-PR. release-please legt Tag und GitHub-Release an.
+3. GitHub schickt einen signierten `release`-Payload an `/hooks/github`.
+4. `webhook` validiert die HMAC-SHA256-Signatur und prüft Event `release` und `action == "published"`. Die übrigen Release-Aktionen (`created`, `released`, `edited` …) werden ignoriert, sonst liefe derselbe Deploy mehrfach.
+5. `deploy.sh <tag>` checkt das Tag aus, baut die Seite (`npm ci && npm run generate`), veröffentlicht sie in ein neues Release und schwenkt `current` darauf um.
 
 `deploy.sh` lässt sich jederzeit auch ohne Webhook auf dem Server ausführen
--- für ein manuelles Deployment oder zum Debuggen.
+-- für ein manuelles Deployment oder zum Debuggen. `deploy.sh 1.3.0` baut eine
+ältere Version neu, falls ihr Release-Verzeichnis schon weggeräumt ist.
+
+## Umstellung von Push- auf Release-Deploy
+
+Einmalig, auf einem Server, der noch per Push deployt:
+
+1. Die Umstellung auf `master` mergen. Der alte Push-Hook deployt sie ein
+   letztes Mal — danach liegen die neuen Skripte auf dem Server.
+2. `hooks.json` neu aus dem Template erzeugen (Secret übernehmen) und
+   `rc-service webhook restart`. Das ist nötig, obwohl GitHub schon alle Events
+   schickt: Die alte `hooks.json` reagiert weiter auf Pushes auf `master`.
+   Mit dem neuen `deploy.sh` deployt sie dann das neueste Release, und zwar
+   beim Merge des Release-PRs *bevor* release-please dessen Tag angelegt hat.
+   Das Ergebnis wäre jedes Mal das vorherige Release.
+
+Bis zum ersten Release deployt dann nichts mehr. Wer `poll.sh` nutzt, muss
+nur Schritt 1 abwarten.
 
 ## Neue Loops
 
 Loops werden nicht auf dem Server eingepflegt, sondern lokal: `npm run add`
 lädt Video und Poster nach `public/loops/` und schreibt den Datensatz nach
-`content/loops.json`. Beides wird committet — der Push löst dann das Deployment
-aus. Der Server braucht dafür kein `ffmpeg`.
+`content/loops.json`. Beides geht als PR mit dem Titel `feat(content): …` nach
+`master` und mit dem nächsten Release live. Der Server braucht dafür kein `ffmpeg`.

@@ -1,0 +1,50 @@
+name: release
+
+# On an ordinary push to master this only refreshes the open release pull request. Merging that
+# pull request is the release: release-please then bumps package.json, writes CHANGELOG.md, tags
+# the commit and publishes a GitHub release — and the `release.published` webhook is what deploys
+# (see `.github/webhooks`). Nothing reaches the server without that manual merge.
+on:
+  push:
+    branches:
+      - master
+
+# Never drop a run. `cancel-in-progress: false` alone does not achieve that: the default queue holds
+# exactly one pending run and the next arrival cancels it, so the push that merges the release pull
+# request could be the one that never gets tagged. `queue: max` keeps a real backlog.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+  queue: max
+
+# Nothing here uses GITHUB_TOKEN; the app token below carries the rights, narrowed where it is minted.
+permissions: {}
+
+jobs:
+  release-please:
+    name: release-please
+    runs-on: ubuntu-latest
+    steps:
+      # it4c-release-bot instead of GITHUB_TOKEN: a pull request opened with GITHUB_TOKEN starts no
+      # workflow runs, so the release pull request would never get the required checks and could
+      # not be merged.
+      - name: Generate it4c-release-bot token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          # Without these the token inherits all of the installation's permissions.
+          #   contents      — the release commit, the tag and the GitHub release
+          #   pull-requests — the release pull request itself
+          #   issues        — its `autorelease: pending`/`tagged` labels, which go through the
+          #                   issues API
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: .github/release-please/config.json
+          manifest-file: .github/release-please/manifest.json

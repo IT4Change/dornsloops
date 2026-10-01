@@ -1,8 +1,9 @@
 #!/bin/sh
 
-# Always deploy the current state of origin/master.
-# Called automatically by the GitHub webhook on push to master,
-# or manually on the server (no arguments).
+# Deploy a release: the git tag release-please created when its pull request
+# was merged. Called by the GitHub webhook on `release.published` with the tag
+# as argument, or manually on the server — without an argument it deploys the
+# newest release tag. Never a branch: what is live is always a tagged version.
 #
 # The site is fully static, so there is no service to restart: the build is
 # published into a timestamped release directory and the `current` symlink —
@@ -26,11 +27,30 @@ log () {
 
 cd "$PROJECT_ROOT"
 
-# Sync working tree to the latest master, discarding local changes
-log "fetching origin/master"
-git fetch --prune origin
-git checkout master
-git reset --hard origin/master
+# `--tags` because the tag that triggered this run is new by definition.
+log "fetching origin"
+git fetch --prune --tags origin
+
+TAG="${1:-$(git tag --merged origin/master --list --sort=-v:refname '[0-9]*.[0-9]*.[0-9]*' | head -n 1)}"
+
+# The argument comes out of the webhook payload. It is signed, but it still ends
+# up in a git command line and a directory name, so only a plain version passes.
+if ! printf '%s' "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  log "ERROR: '$TAG' is not a release tag — nothing deployed"
+  exit 1
+fi
+
+# Only what went through master is a release. A tag pushed from a side branch,
+# by hand or by mistake, would otherwise bypass every check.
+if ! git merge-base --is-ancestor "refs/tags/$TAG" origin/master; then
+  log "ERROR: $TAG is not on origin/master — nothing deployed"
+  exit 1
+fi
+
+# Detached on the tag; `--force` discards local changes like the
+# `reset --hard` this used to be.
+log "checking out $TAG"
+git -c advice.detachedHead=false checkout --force --detach "refs/tags/$TAG"
 
 # Build. The fixed zone keeps a build reproducible wherever it runs; what the page
 # shows no longer depends on it, the upload date carries its own zone.
@@ -68,7 +88,9 @@ fi
 #     the unchanged videos alone.
 # rsync replaces changed files by writing a temp file and renaming it, so
 # older releases keep their own version.
-RELEASE="$RELEASES_DIR/$(date -u '+%Y%m%d%H%M%S')"
+# Timestamp first, so the pruning below can keep sorting by name; the tag after
+# it says which version a directory is when picking one for a rollback.
+RELEASE="$RELEASES_DIR/$(date -u '+%Y%m%d%H%M%S')-$TAG"
 PREVIOUS=$(readlink -f "$CURRENT_LINK" 2>/dev/null || true)
 
 mkdir -p "$RELEASES_DIR"
@@ -97,4 +119,4 @@ find "$RELEASES_DIR" -maxdepth 1 -type d -name '2*' \
       rm -rf "$old"
     done
 
-log "deployment complete"
+log "deployment of $TAG complete"

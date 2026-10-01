@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Alternative to the webhook for hosts GitHub cannot reach (internal network,
-# no port forwarding): check origin/master and deploy only when it moved.
+# no port forwarding): check for a newer release tag and deploy only then.
 # Meant for cron, e.g. every five minutes:
 #
 #   */5 * * * * /var/www/dornsloops/.github/webhooks/poll.sh >> /var/log/dornsloops-poll.log 2>&1
@@ -23,14 +23,20 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
 fi
 trap 'rmdir "$LOCK_DIR"' EXIT INT TERM
 
-git fetch --quiet --prune origin
+git fetch --quiet --prune --tags origin
 
-LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/master)
+# Same selection as deploy.sh without an argument.
+LATEST=$(git tag --merged origin/master --list --sort=-v:refname '[0-9]*.[0-9]*.[0-9]*' | head -n 1)
 
-if [ "$LOCAL" = "$REMOTE" ]; then
+if [ -z "$LATEST" ]; then
   exit 0
 fi
 
-echo "[$(date -u '+%Y-%m-%d %H:%M:%SZ')] origin/master moved ${LOCAL%"${LOCAL#???????}"} -> ${REMOTE%"${REMOTE#???????}"}, deploying"
-sh "$SCRIPT_DIR/deploy.sh"
+# deploy.sh leaves the checkout detached on the tag it deployed, so HEAD tells
+# what is live. Compared as commits: a tag is only a name for one.
+if [ "$(git rev-parse HEAD)" = "$(git rev-parse "refs/tags/$LATEST^{commit}")" ]; then
+  exit 0
+fi
+
+echo "[$(date -u '+%Y-%m-%d %H:%M:%SZ')] new release $LATEST, deploying"
+sh "$SCRIPT_DIR/deploy.sh" "$LATEST"

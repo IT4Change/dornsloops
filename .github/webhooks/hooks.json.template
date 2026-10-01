@@ -3,6 +3,12 @@
     "id": "github",
     "execute-command": "$PROJECT_ROOT/.github/webhooks/deploy.sh",
     "command-working-directory": "$PROJECT_ROOT",
+    "pass-arguments-to-command": [
+      {
+        "source": "payload",
+        "name": "release.tag_name"
+      }
+    ],
     "trigger-rule": {
       "and": [
         {
@@ -18,10 +24,20 @@
         {
           "match": {
             "type": "value",
-            "value": "refs/heads/master",
+            "value": "release",
+            "parameter": {
+              "source": "header",
+              "name": "X-GitHub-Event"
+            }
+          }
+        },
+        {
+          "match": {
+            "type": "value",
+            "value": "published",
             "parameter": {
               "source": "payload",
-              "name": "ref"
+              "name": "action"
             }
           }
         }

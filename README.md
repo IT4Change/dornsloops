@@ -234,7 +234,7 @@ Löschung, die sonst übrig bleibt — Eintrag weg, Video weiter ausgeliefert.
 npx vitest run --project content   # nur die Daten
 ```
 
-Diese Prüfung läuft in `test:unit` mit, also auch bei jedem `new loop`-Push.
+Diese Prüfung läuft in `test:unit` mit, also auch bei jedem PR mit neuen Loops.
 
 Die Coverage-Schwellen stehen pro Bereich, nicht als eine Zahl fürs Projekt:
 `app/**` hält 97 %, `scripts/ingest.mjs` deutlich weniger, weil dessen zweite

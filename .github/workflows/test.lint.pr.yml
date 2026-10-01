@@ -1,0 +1,68 @@
+name: test:lint pull request
+
+# Pull requests are squash-merged, so the title becomes the commit on master, and that commit is
+# what release-please reads to pick the version bump and the changelog section.
+#
+# `pull_request_target` so that the status can be written for pull requests from forks too. Safe
+# here: nothing is checked out, the action only reads the title from the event payload.
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+
+# A newer edit makes the older run's result irrelevant. Keyed by pull request number, not
+# `head_ref`, which is only unique within this repository, not across forks.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: read
+  statuses: write
+
+jobs:
+  main:
+    name: Validate PR title
+    runs-on: ubuntu-latest
+    # Dependabot writes `build(deps-dev): …` for development dependencies, a scope that is not in
+    # the list below. A skipped job reports success, so it does not block a required check.
+    if: ${{ github.event.pull_request.user.login != 'dependabot[bot]' }}
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Types: the conventional-commit defaults. Every one of them shows up in the changelog,
+          # see `changelog-sections` in `.github/release-please/config.json`.
+          #
+          # Scopes cut along what a change touches:
+          #   app      — the Nuxt application under app/
+          #   content  — loops: content/loops.json and public/loops/
+          #   e2e      — the Playwright suite
+          #   deps     — dependency changes by hand
+          #   infra    — deployment, .github/webhooks
+          #   workflow — GitHub Actions, Dependabot, release-please
+          #   docu     — README and other documentation
+          #   release  — the release pull request
+          scopes: |
+            app
+            content
+            e2e
+            deps
+            infra
+            workflow
+            docu
+            release
+            other
+          requireScope: true
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" found in the pull request title "{title}"
+            didn't match the configured pattern. Please ensure that the subject
+            doesn't start with an uppercase character.
+          headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
+          headerPatternCorrespondence: type, scope, subject
+          # A `[WIP]` title keeps the check pending, so it cannot be merged by accident.
+          wip: true
