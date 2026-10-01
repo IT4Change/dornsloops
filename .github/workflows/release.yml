@@ -36,12 +36,12 @@ jobs:
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           # Without these the token inherits all of the installation's permissions.
           #   contents      — the release commit, the tag and the GitHub release
-          #   pull-requests — the release pull request itself
-          #   issues        — its `autorelease: pending`/`tagged` labels, which go through the
-          #                   issues API
+          #   pull-requests — the release pull request and its `autorelease: pending`/`tagged`
+          #                   labels; the issues API accepts either scope for a pull request
+          # No `issues`: the IT4Change installation of the app does not grant it, and asking for
+          # a permission the installation lacks fails the whole token request (422).
           permission-contents: write
           permission-pull-requests: write
-          permission-issues: write
 
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
