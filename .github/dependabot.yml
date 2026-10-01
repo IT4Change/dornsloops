@@ -1,6 +1,13 @@
 # Every pull request opened here is armed for auto-merge by `workflows/dependabot-auto-merge.yml`,
 # so the required status checks on master are the only review a bump gets. See that file.
 #
+# `commit-message` is spelled out instead of left to Dependabot's detection, which copies the style
+# of recent commits on master. Ocelot gets `build(deps): …` that way because its history is
+# conventional throughout; this one is not (and every `Bump …` it produced would reinforce that).
+# The squash merge takes the pull request title, and release-please ignores anything that is not a
+# conventional commit — so without this, bumps never reach the changelog. `include: scope` adds
+# `deps` or `deps-dev`, which `test.lint.pr.yml` skips for Dependabot anyway.
+#
 # `rebase-strategy` is left at its default ("auto"): a pull request that has fallen into conflict
 # with master would otherwise never merge and just sit there. Dependabot only rebases on its weekly
 # run or when a push to master puts the pull request in CONFLICT, not on every push.
@@ -14,6 +21,9 @@ updates:
       day: 'saturday'
       timezone: 'Europe/Berlin'
       time: '03:00'
+    commit-message:
+      prefix: build
+      include: scope
 
   - package-ecosystem: npm
     open-pull-requests-limit: 99
@@ -23,6 +33,9 @@ updates:
       day: 'saturday'
       timezone: 'Europe/Berlin'
       time: '03:00'
+    commit-message:
+      prefix: build
+      include: scope
     groups:
       # `@nuxt/test-utils` tracks nuxt's internals closely enough that the two are best moved together.
       nuxt:
