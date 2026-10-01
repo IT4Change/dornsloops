@@ -9,6 +9,12 @@ const loops = JSON.parse(
   readFileSync(new URL('./content/loops.json', import.meta.url), 'utf8'),
 ) as LoopEntry[]
 
+// release-please bumps this in the release commit, and the server builds exactly that tag —
+// so the version the footer shows is the version that is live.
+const { version } = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
+) as { version: string }
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-28',
@@ -23,6 +29,21 @@ export default defineNuxtConfig({
       // Link previews need absolute URLs for image and video, so this has to be
       // set at build time — via .env or NUXT_PUBLIC_SITE_URL in the environment.
       siteUrl: '',
+      version,
+      // The GitHub release of that version, with its changelog. release-please tags without
+      // a `v` prefix, see `.github/release-please/config.json`.
+      releaseUrl: `https://github.com/IT4Change/dornsloops/releases/tag/${version}`,
+    },
+  },
+
+  // A dev server runs code that is ahead of the last release: say so, and link nowhere —
+  // the release page would describe a different state.
+  $development: {
+    runtimeConfig: {
+      public: {
+        version: `${version}-dev`,
+        releaseUrl: '',
+      },
     },
   },
 
