@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/IT4Change/dornsloops/compare/1.1.0...1.1.1) (2026-10-01)
+
+
+### Bug Fixes
+
+* **workflow:** give dependabot conventional commit messages ([#8](https://github.com/IT4Change/dornsloops/issues/8)) ([5c26a51](https://github.com/IT4Change/dornsloops/commit/5c26a5113d507ec135a9db3d519825c71daea0e8))
+
 ## [1.1.0](https://github.com/IT4Change/dornsloops/compare/1.0.1...1.1.0) (2026-10-01)
 
 
