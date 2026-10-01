@@ -5,6 +5,9 @@
     titleTemplate: (title) =>
       title && title !== 'dornsloops' ? `${title} · dornsloops` : 'dornsloops',
   })
+
+  // Shows which release is live, so a deploy can be checked from the page itself.
+  const { version, releaseUrl } = useRuntimeConfig().public
 </script>
 
 <template>
@@ -14,6 +17,12 @@
     <footer class="footer">
       <p>
         Alle Loops stammen von ihren jeweiligen Urhebern; die Quelle ist an jedem Loop verlinkt.
+      </p>
+      <p class="footer__version">
+        <a v-if="releaseUrl" :href="releaseUrl" target="_blank" rel="noopener noreferrer">
+          {{ version }}
+        </a>
+        <span v-else>{{ version }}</span>
       </p>
     </footer>
   </div>
@@ -38,5 +47,10 @@
   .footer p {
     max-width: 46rem;
     margin: 0 auto;
+  }
+
+  .footer__version {
+    margin-top: 0.5rem;
+    font-variant-numeric: tabular-nums;
   }
 </style>
