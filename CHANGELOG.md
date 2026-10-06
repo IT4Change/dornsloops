@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/IT4Change/dornsloops/compare/1.1.1...1.2.0) (2026-10-06)
+
+
+### Features
+
+* **content:** add loop 7162835 "Benisfarmen mit Japan" ([#11](https://github.com/IT4Change/dornsloops/issues/11)) ([a6880f5](https://github.com/IT4Change/dornsloops/commit/a6880f5d79873744abf46fbb0761f2bdd756f2b5))
+
 ## [1.1.1](https://github.com/IT4Change/dornsloops/compare/1.1.0...1.1.1) (2026-10-01)
 
 
