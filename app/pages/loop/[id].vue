@@ -84,16 +84,28 @@
   }
 
   function onKeydown(event: KeyboardEvent) {
-    if ((event.target as HTMLElement).tagName === 'INPUT') {
+    // A modifier makes it a browser shortcut: Ctrl+D bookmarks, Alt+← goes back in history.
+    if (
+      (event.target as HTMLElement).tagName === 'INPUT' ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey
+    ) {
       return
     }
 
+    const next = around.value.next ? `/loop/${around.value.next.id}` : undefined
+    const previous = around.value.previous ? `/loop/${around.value.previous.id}` : undefined
+    // A and D are pr0gramm's keys for the same steps. Folded like M in the player, because
+    // Shift or CapsLock turn `event.key` into the capital.
     const targets: Record<string, string | undefined> = {
-      ArrowRight: around.value.next ? `/loop/${around.value.next.id}` : undefined,
-      ArrowLeft: around.value.previous ? `/loop/${around.value.previous.id}` : undefined,
-      Escape: '/',
+      arrowright: next,
+      d: next,
+      arrowleft: previous,
+      a: previous,
+      escape: '/',
     }
-    const target = targets[event.key]
+    const target = targets[event.key.toLowerCase()]
     if (!target) {
       return
     }
@@ -116,14 +128,14 @@
           v-if="around.previous"
           class="button"
           :to="`/loop/${around.previous.id}`"
-          title="Vorheriger Loop (←)"
+          title="Vorheriger Loop (← / A)"
           >◀</NuxtLink
         >
         <NuxtLink
           v-if="around.next"
           class="button"
           :to="`/loop/${around.next.id}`"
-          title="Nächster Loop (→)"
+          title="Nächster Loop (→ / D)"
           >▶</NuxtLink
         >
       </span>

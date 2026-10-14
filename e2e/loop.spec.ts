@@ -98,6 +98,18 @@ test.describe('stepping through the wall', () => {
     await expect(page).toHaveURL(detail(FIRST.id))
   })
 
+  test('D and A walk the queue like → and ←', async ({ page }) => {
+    await openLoop(page, FIRST.id)
+
+    await page.keyboard.press('d')
+
+    await expect(page).toHaveURL(detail(SECOND.id))
+
+    await page.keyboard.press('a')
+
+    await expect(page).toHaveURL(detail(FIRST.id))
+  })
+
   test('wraps around at the front of the queue', async ({ page }) => {
     await openLoop(page, FIRST.id)
 
@@ -179,6 +191,28 @@ test.describe('the player', () => {
     await page.keyboard.press('m')
 
     await expect(page.getByRole('button', { name: 'Ton an' })).toBeVisible()
+  })
+
+  test('Q does the same as M', async ({ page }) => {
+    await openLoop(page, SECOND.id)
+
+    await page.keyboard.press('q')
+
+    await expect(page.getByRole('button', { name: 'Ton an' })).toBeVisible()
+  })
+
+  test('P pauses and resumes like the space bar', async ({ page }) => {
+    await openLoop(page, SECOND.id)
+
+    await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible()
+
+    await page.keyboard.press('p')
+
+    await expect(page.getByRole('button', { name: 'Weiter' })).toBeVisible()
+
+    await page.keyboard.press('p')
+
+    await expect(page.getByRole('button', { name: 'Pause' })).toBeVisible()
   })
 
   test('Shift+M mutes, Ctrl+M stays out of it', async ({ page }) => {
