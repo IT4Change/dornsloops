@@ -56,8 +56,8 @@ async function mountPlayer(loop = makeLoop()): Promise<VueWrapper> {
 }
 
 const video = (): HTMLVideoElement => wrapper!.get('video').element
-const muteButton = () => wrapper!.get('button[title$="(M)"]')
-const playButton = () => wrapper!.get('button[title$="(Leertaste)"]')
+const muteButton = () => wrapper!.get('button[title$="(M / Q)"]')
+const playButton = () => wrapper!.get('button[title$="(Leertaste / P)"]')
 const bar = () => wrapper!.get('.player__progress')
 
 /** A keystroke as it reaches the window listener, from wherever the focus is. */
@@ -236,6 +236,43 @@ describe('the keyboard', () => {
     expect(video().muted).toBe(true)
   })
 
+  it.each([['q'], ['Q']])('toggles the sound with %s too, the way pr0gramm does', async (key) => {
+    await mountPlayer()
+
+    press(key)
+    await flushPromises()
+
+    expect(video().muted).toBe(true)
+
+    press(key)
+    await flushPromises()
+
+    expect(video().muted).toBe(false)
+  })
+
+  it.each([['p'], ['P']])('pauses and resumes with %s, the way pr0gramm does', async (key) => {
+    await mountPlayer()
+
+    press(key)
+    await flushPromises()
+
+    expect(video().paused).toBe(true)
+
+    press(key)
+    await flushPromises()
+
+    expect(video().paused).toBe(false)
+  })
+
+  it('leaves Ctrl+P to the browser, which prints with it', async () => {
+    await mountPlayer()
+
+    press('p', { ctrlKey: true })
+    await flushPromises()
+
+    expect(video().paused).toBe(false)
+  })
+
   it('leaves a keystroke meant for a field alone', async () => {
     await mountPlayer()
     const input = document.createElement('input')
@@ -296,7 +333,7 @@ describe('the keyboard', () => {
   it('leaves a key it has no answer for to the page around it', async () => {
     await mountPlayer()
 
-    const event = new KeyboardEvent('keydown', { key: 'q', cancelable: true })
+    const event = new KeyboardEvent('keydown', { key: 'x', cancelable: true })
     window.dispatchEvent(event)
     await flushPromises()
 

@@ -209,8 +209,8 @@ describe('the queue', () => {
 })
 
 describe('the keyboard', () => {
-  function press(key: string): KeyboardEvent {
-    const event = new KeyboardEvent('keydown', { key, cancelable: true })
+  function press(key: string, init: KeyboardEventInit = {}): KeyboardEvent {
+    const event = new KeyboardEvent('keydown', { key, cancelable: true, ...init })
     window.dispatchEvent(event)
     return event
   }
@@ -227,6 +227,35 @@ describe('the keyboard', () => {
     expect(routes()).toStrictEqual(['/loop/3', '/loop/1'])
   })
 
+  it.each([
+    ['d', 'a'],
+    ['D', 'A'],
+  ])('steps with %s and %s as well, the way pr0gramm does', async (forward, back) => {
+    await mountLoop(2)
+
+    press(forward)
+
+    expect(routes()).toStrictEqual(['/loop/3'])
+
+    press(back)
+
+    expect(routes()).toStrictEqual(['/loop/3', '/loop/1'])
+  })
+
+  it.each([['ctrlKey'], ['metaKey'], ['altKey']])(
+    'leaves %s+D and %s+← to the browser',
+    async (modifier) => {
+      await mountLoop(2)
+
+      const bookmark = press('d', { [modifier]: true })
+      const back = press('ArrowLeft', { [modifier]: true })
+
+      expect(routes()).toStrictEqual([])
+      expect(bookmark.defaultPrevented).toBe(false)
+      expect(back.defaultPrevented).toBe(false)
+    },
+  )
+
   it('leaves for the wall on Escape', async () => {
     await mountLoop(2)
 
@@ -238,7 +267,7 @@ describe('the keyboard', () => {
   it('ignores a key it has no answer for', async () => {
     await mountLoop(2)
 
-    const event = press('q')
+    const event = press('x')
 
     expect(routes()).toStrictEqual([])
     expect(event.defaultPrevented).toBe(false)

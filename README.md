@@ -289,12 +289,15 @@ wird, damit im ausgelieferten HTML derselbe Tag steht wie nach der Hydration.
 
 | Taste | Funktion |
 | --- | --- |
-| `→` / `←` | nächster / vorheriger Loop |
-| `Leertaste` | Pause / Weiter |
-| `M` | stumm schalten / Ton an |
+| `→` / `←`, `D` / `A` | nächster / vorheriger Loop |
+| `Leertaste`, `P` | Pause / Weiter |
+| `M`, `Q` | stumm schalten / Ton an |
 | `Esc` | zurück zur Wand |
 | `Bild auf` / `Bild ab` | im Loop vor / zurück (je ein Zehntel) |
 | `Pos1` / `Ende` | an den Anfang / ans Ende des Loops |
+
+`A`/`D`, `P` und `Q` sind die Kürzel von pr0gramm — wer von dort kommt, muss
+nicht umlernen.
 
 Die letzten beiden Zeilen wirken, solange der Fortschrittsbalken den Fokus hat —
 er ist mit `Tab` erreichbar. `→` und `←` wechseln auch dort den Loop, statt zu
@@ -303,8 +306,10 @@ auch mit der Tastatur: Play/Pause und Stumm stehen zusätzlich als Knöpfe unter
 dem Video.
 
 Mit `Strg`, `Alt` oder `⌘` greift keines der Kürzel — `Strg+M` gehört dem Browser
-und dem Screenreader, `⌘M` minimiert das Fenster. `Umschalt+M` schaltet dagegen
-stumm, denn das ist dieselbe Taste in Groß. Und die `Leertaste` auf einem
+und dem Screenreader, `⌘M` minimiert das Fenster, `Strg+D` setzt ein Lesezeichen,
+`Strg+P` druckt und `Alt+←` blättert in der Browser-History zurück. `Umschalt+M`
+schaltet dagegen stumm, denn das ist dieselbe Taste in Groß; das gilt für alle
+Buchstaben-Kürzel. Und die `Leertaste` auf einem
 fokussierten Knopf löst nur diesen Knopf aus, nicht zusätzlich Pause.
 
 Vor und zurück bleibt innerhalb eines aktiven Tag-Filters und läuft am Ende der

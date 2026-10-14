@@ -186,11 +186,23 @@
       }
       event.preventDefault()
       togglePlay()
-    } else if (event.key.toLowerCase() === 'm') {
-      // `event.key` is 'M' with Shift or CapsLock, and the README spells the key that way.
-      event.preventDefault()
-      toggleMute()
+      return
     }
+
+    // `event.key` is 'M' with Shift or CapsLock, and the README spells the keys that way.
+    // P and Q are pr0gramm's keys for the same two toggles.
+    const actions: Record<string, (() => void) | undefined> = {
+      m: toggleMute,
+      q: toggleMute,
+      p: togglePlay,
+    }
+    const action = actions[event.key.toLowerCase()]
+    if (!action) {
+      return
+    }
+
+    event.preventDefault()
+    action()
   }
 
   // Navigating between loops keeps this component mounted, so restart explicitly.
@@ -245,7 +257,7 @@
       <button
         class="button"
         type="button"
-        :title="paused ? 'Weiter (Leertaste)' : 'Pause (Leertaste)'"
+        :title="paused ? 'Weiter (Leertaste / P)' : 'Pause (Leertaste / P)'"
         :aria-label="paused ? 'Weiter' : 'Pause'"
         @click="togglePlay"
       >
@@ -254,7 +266,7 @@
       <button
         class="button"
         type="button"
-        :title="muted ? 'Ton an (M)' : 'Stumm (M)'"
+        :title="muted ? 'Ton an (M / Q)' : 'Stumm (M / Q)'"
         :aria-label="muted ? 'Ton an' : 'Stumm'"
         @click="toggleMute"
       >
