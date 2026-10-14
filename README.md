@@ -270,7 +270,9 @@ npm run test:e2e
 npm run test:e2e -- --ui          # interaktiv
 ```
 
-Dieselben Skripte laufen bei jedem Push und PR:
+Dieselben Skripte laufen bei jedem Push und PR, dazu der Build, den
+`deploy.sh` ausliefert:
+[`app.build.code.yml`](.github/workflows/app.build.code.yml),
 [`app.test.lint.code.yml`](.github/workflows/app.test.lint.code.yml),
 [`app.test.unit.code.yml`](.github/workflows/app.test.unit.code.yml),
 [`app.test.e2e.code.yml`](.github/workflows/app.test.e2e.code.yml).
