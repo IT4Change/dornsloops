@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/IT4Change/dornsloops/compare/1.3.0...1.4.0) (2026-10-14)
+
+
+### Features
+
+* **app:** add pr0gramm keyboard shortcuts ([#21](https://github.com/IT4Change/dornsloops/issues/21)) ([e9b072f](https://github.com/IT4Change/dornsloops/commit/e9b072f0ab269126b70eac208bb5813c6e01a30e))
+
+
+### Continuous Integration
+
+* **workflow:** build the deployed artefact in ci ([#19](https://github.com/IT4Change/dornsloops/issues/19)) ([93eba5e](https://github.com/IT4Change/dornsloops/commit/93eba5ec6c47988e2d7d53689f12c78628d0fd32))
+
 ## [1.3.0](https://github.com/IT4Change/dornsloops/compare/1.2.0...1.3.0) (2026-10-10)
 
 
