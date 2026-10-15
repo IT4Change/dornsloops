@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/IT4Change/dornsloops/compare/1.4.0...1.5.0) (2026-10-15)
+
+
+### Features
+
+* **content:** add loop 7172789 "Synthwave" ([#22](https://github.com/IT4Change/dornsloops/issues/22)) ([858a811](https://github.com/IT4Change/dornsloops/commit/858a8113a46de0b34fc2891e79d815337abc4e70))
+
 ## [1.4.0](https://github.com/IT4Change/dornsloops/compare/1.3.0...1.4.0) (2026-10-14)
 
 
