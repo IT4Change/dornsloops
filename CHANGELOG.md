@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.5.1](https://github.com/IT4Change/dornsloops/compare/1.5.0...1.5.1) (2026-10-17)
+
+
+### Build System & Dependencies
+
+* **deps-dev:** bump @playwright/test from 1.63.0 to 1.64.0 ([#28](https://github.com/IT4Change/dornsloops/issues/28)) ([4a20732](https://github.com/IT4Change/dornsloops/commit/4a2073241cc63731fdf766989692994b91194e46))
+* **deps-dev:** bump happy-dom from 20.14.5 to 21.0.1 ([#27](https://github.com/IT4Change/dornsloops/issues/27)) ([cb8a4c6](https://github.com/IT4Change/dornsloops/commit/cb8a4c600f1fc6e75ca8da8dccc544c7b804c23d))
+* **deps-dev:** bump prettier from 3.9.9 to 3.9.10 ([#30](https://github.com/IT4Change/dornsloops/issues/30)) ([daa59b6](https://github.com/IT4Change/dornsloops/commit/daa59b6c46024fd64a812a373a36fabf59bae3c1))
+* **deps-dev:** bump the vitest group with 2 updates ([#26](https://github.com/IT4Change/dornsloops/issues/26)) ([9f5c347](https://github.com/IT4Change/dornsloops/commit/9f5c3474e8f9c8e18b21e12af5f8386ee2a0907d))
+* **deps-dev:** bump vue-tsc from 3.3.12 to 3.3.13 ([#32](https://github.com/IT4Change/dornsloops/issues/32)) ([d5df64d](https://github.com/IT4Change/dornsloops/commit/d5df64ddb41174944a521ffafbcd6cd2ff660c52))
+* **deps:** bump actions/create-github-app-token from 3.2.0 to 3.3.0 ([#24](https://github.com/IT4Change/dornsloops/issues/24)) ([b397123](https://github.com/IT4Change/dornsloops/commit/b397123e3599b2ca82f816c461a9ac03604c6ded))
+* **deps:** bump nuxt from 4.6.0 to 4.6.1 in the nuxt group across 1 directory ([#25](https://github.com/IT4Change/dornsloops/issues/25)) ([57dd896](https://github.com/IT4Change/dornsloops/commit/57dd896aacb593c731b5ed2edf0105dd997fdfaf))
+* **deps:** bump vue from 3.5.43 to 3.5.44 ([#31](https://github.com/IT4Change/dornsloops/issues/31)) ([0e6ce2c](https://github.com/IT4Change/dornsloops/commit/0e6ce2ce81ae2aad9971bd7faad76fd268fd4001))
+* **deps:** bump vue-router from 5.3.1 to 5.4.0 ([#29](https://github.com/IT4Change/dornsloops/issues/29)) ([3ba4255](https://github.com/IT4Change/dornsloops/commit/3ba4255257a8a0c166a0294f9c04614bc4f3cf9a))
+
 ## [1.5.0](https://github.com/IT4Change/dornsloops/compare/1.4.0...1.5.0) (2026-10-15)
 
 
