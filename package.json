@@ -43,7 +43,7 @@
     "@vue/test-utils": "^2.5.1",
     "cross-env": "^10.1.0",
     "eslint": "^10.13.0",
-    "eslint-config-it4c": "^0.13.2",
+    "eslint-config-it4c": "^0.14.1",
     "happy-dom": "^21.0.4",
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
