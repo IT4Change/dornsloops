@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.6.0](https://github.com/IT4Change/dornsloops/compare/1.5.1...1.6.0) (2026-10-26)
+
+
+### Features
+
+* **content:** add loop 7183566 "Mass Effect" ([#42](https://github.com/IT4Change/dornsloops/issues/42)) ([a2c1882](https://github.com/IT4Change/dornsloops/commit/a2c1882d5fb7704e84e88f9555bb45cad11dcd2c))
+
+
+### Build System & Dependencies
+
+* **deps-dev:** bump @playwright/test from 1.64.0 to 1.64.1 ([#38](https://github.com/IT4Change/dornsloops/issues/38)) ([472d446](https://github.com/IT4Change/dornsloops/commit/472d446fd3ac0227fcb55985152cce50ba3a00cd))
+* **deps-dev:** bump eslint from 10.12.0 to 10.13.0 ([#37](https://github.com/IT4Change/dornsloops/issues/37)) ([aa4f829](https://github.com/IT4Change/dornsloops/commit/aa4f829043b54cef5a5b8d6f23556cb61aed3fcd))
+* **deps-dev:** bump eslint-config-it4c from 0.13.2 to 0.14.1 ([#36](https://github.com/IT4Change/dornsloops/issues/36)) ([2781ce3](https://github.com/IT4Change/dornsloops/commit/2781ce3f59f052c02ee844a78665b85fd4ca69bb))
+* **deps-dev:** bump happy-dom from 21.0.1 to 21.0.4 ([#39](https://github.com/IT4Change/dornsloops/issues/39)) ([9f20ad8](https://github.com/IT4Change/dornsloops/commit/9f20ad8f1eee4458331ed06b538bb882670a1f7c))
+* **deps-dev:** bump the vitest group with 2 updates ([#35](https://github.com/IT4Change/dornsloops/issues/35)) ([c7b1a1e](https://github.com/IT4Change/dornsloops/commit/c7b1a1e60afe2687b2b3d85b226999215d28bf84))
+* **deps:** bump nuxt from 4.6.1 to 4.6.2 in the nuxt group across 1 directory ([#41](https://github.com/IT4Change/dornsloops/issues/41)) ([9264765](https://github.com/IT4Change/dornsloops/commit/9264765ac1d50f866cd58ca55966d8b34a05145a))
+
 ## [1.5.1](https://github.com/IT4Change/dornsloops/compare/1.5.0...1.5.1) (2026-10-17)
 
 
