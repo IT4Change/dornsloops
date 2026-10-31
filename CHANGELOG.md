@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/IT4Change/dornsloops/compare/1.6.0...1.6.1) (2026-10-31)
+
+
+### Build System & Dependencies
+
+* **deps:** bump nuxt from 4.6.2 to 4.6.3 in the nuxt group ([#43](https://github.com/IT4Change/dornsloops/issues/43)) ([c610ab4](https://github.com/IT4Change/dornsloops/commit/c610ab43270a57c1fcd75e4350de7c92712fe534))
+
 ## [1.6.0](https://github.com/IT4Change/dornsloops/compare/1.5.1...1.6.0) (2026-10-26)
 
 
