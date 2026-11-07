@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.1](https://github.com/IT4Change/dornsloops/compare/1.7.0...1.7.1) (2026-11-07)
+
+
+### Build System & Dependencies
+
+* **deps-dev:** bump eslint from 10.13.0 to 10.14.0 ([#48](https://github.com/IT4Change/dornsloops/issues/48)) ([6ac2631](https://github.com/IT4Change/dornsloops/commit/6ac263122e34e13de8ee08adfceed27e9191efcd))
+* **deps-dev:** bump the vitest group across 1 directory with 2 updates ([#47](https://github.com/IT4Change/dornsloops/issues/47)) ([d28d39f](https://github.com/IT4Change/dornsloops/commit/d28d39f1c324998f2841bf9b0f295ea8ab100e17))
+* **deps-dev:** bump vue-tsc from 3.3.13 to 3.3.14 ([#49](https://github.com/IT4Change/dornsloops/issues/49)) ([2f1846f](https://github.com/IT4Change/dornsloops/commit/2f1846fbe073e27dc7373d23d90201c282304f6a))
+* **deps:** bump nuxt from 4.6.3 to 4.6.4 in the nuxt group across 1 directory ([#46](https://github.com/IT4Change/dornsloops/issues/46)) ([b54f334](https://github.com/IT4Change/dornsloops/commit/b54f334e8ea27898548f90fa73dde983214799eb))
+
 ## [1.7.0](https://github.com/IT4Change/dornsloops/compare/1.6.0...1.7.0) (2026-11-04)
 
 
