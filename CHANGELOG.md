@@ -1,5 +1,34 @@
 # Changelog
 
+## [1.8.0](https://github.com/IT4Change/dornsloops/compare/1.7.0...1.8.0) (2026-11-21)
+
+
+### Features
+
+* **content:** add loop 7205993 "Bryce Dallas Howard" ([#63](https://github.com/IT4Change/dornsloops/issues/63)) ([2370ebf](https://github.com/IT4Change/dornsloops/commit/2370ebf2aaa9f8a772949decf2d58b26526b41c5))
+* **content:** add loop 7212772 "Danke Paul" ([#61](https://github.com/IT4Change/dornsloops/issues/61)) ([c90a746](https://github.com/IT4Change/dornsloops/commit/c90a7461ce6d553e1e2fdc7ce066fe08a321e65b))
+
+
+### Tests
+
+* **e2e:** fold tag case and decode meta entities ([#62](https://github.com/IT4Change/dornsloops/issues/62)) ([3ebedae](https://github.com/IT4Change/dornsloops/commit/3ebedaec6d57b7cd127cec74267f54725124ab78))
+
+
+### Build System & Dependencies
+
+* **deps-dev:** bump @nuxt/test-utils from 4.3.4 to 4.4.0 in the nuxt group across 1 directory ([#52](https://github.com/IT4Change/dornsloops/issues/52)) ([be35cdb](https://github.com/IT4Change/dornsloops/commit/be35cdbc9760c74131a7d595a059bc332207a363))
+* **deps-dev:** bump @playwright/test from 1.64.1 to 1.65.1 ([#60](https://github.com/IT4Change/dornsloops/issues/60)) ([fa672c1](https://github.com/IT4Change/dornsloops/commit/fa672c13fa154863554ac6b9c670f44fd619fcb3))
+* **deps-dev:** bump @vue/test-utils from 2.5.1 to 2.6.0 ([#57](https://github.com/IT4Change/dornsloops/issues/57)) ([78c3663](https://github.com/IT4Change/dornsloops/commit/78c3663b9ea01082318a9438c4e6a88fedf71375))
+* **deps-dev:** bump eslint from 10.13.0 to 10.14.0 ([#48](https://github.com/IT4Change/dornsloops/issues/48)) ([6ac2631](https://github.com/IT4Change/dornsloops/commit/6ac263122e34e13de8ee08adfceed27e9191efcd))
+* **deps-dev:** bump eslint from 10.14.0 to 10.15.0 ([#59](https://github.com/IT4Change/dornsloops/issues/59)) ([678169c](https://github.com/IT4Change/dornsloops/commit/678169cd3e3dcaa942fb5d6172bb3385aff7a5a1))
+* **deps-dev:** bump prettier from 3.9.10 to 3.10.1 ([#56](https://github.com/IT4Change/dornsloops/issues/56)) ([88cf1ae](https://github.com/IT4Change/dornsloops/commit/88cf1aebc6d9f474ab9091c1768dacdf6a6e8051))
+* **deps-dev:** bump the vitest group across 1 directory with 2 updates ([#47](https://github.com/IT4Change/dornsloops/issues/47)) ([d28d39f](https://github.com/IT4Change/dornsloops/commit/d28d39f1c324998f2841bf9b0f295ea8ab100e17))
+* **deps-dev:** bump vue-tsc from 3.3.13 to 3.3.14 ([#49](https://github.com/IT4Change/dornsloops/issues/49)) ([2f1846f](https://github.com/IT4Change/dornsloops/commit/2f1846fbe073e27dc7373d23d90201c282304f6a))
+* **deps:** bump amannn/action-semantic-pull-request from 6.1.1 to 6.1.2 ([#51](https://github.com/IT4Change/dornsloops/issues/51)) ([225ba6b](https://github.com/IT4Change/dornsloops/commit/225ba6b74de47d8fa6b75131fa1a823acaf832ea))
+* **deps:** bump nuxt from 4.6.3 to 4.6.4 in the nuxt group across 1 directory ([#46](https://github.com/IT4Change/dornsloops/issues/46)) ([b54f334](https://github.com/IT4Change/dornsloops/commit/b54f334e8ea27898548f90fa73dde983214799eb))
+* **deps:** bump vue from 3.5.44 to 3.5.45 ([#55](https://github.com/IT4Change/dornsloops/issues/55)) ([d595e25](https://github.com/IT4Change/dornsloops/commit/d595e255a7f37a3b326a2595fe1e39f3426af366))
+* **deps:** bump vue-router from 5.4.0 to 5.5.1 ([#58](https://github.com/IT4Change/dornsloops/issues/58)) ([9e366e4](https://github.com/IT4Change/dornsloops/commit/9e366e4339e12762029a122d3fdc0083b95cc58f))
+
 ## [1.7.0](https://github.com/IT4Change/dornsloops/compare/1.6.0...1.7.0) (2026-11-04)
 
 
