@@ -4,6 +4,26 @@ import { SECOND } from './loops'
 
 const loopPath = `/loop/${String(SECOND.id)}`
 
+const ENTITIES: Record<string, string> = {
+  amp: '&',
+  quot: '"',
+  lt: '<',
+  gt: '>',
+  '#39': "'",
+  '#x27': "'",
+}
+
+/**
+ * The markup escapes what the data may legitimately contain (a tag like `"Musik"`); the
+ * preview a crawler shows is the decoded text, so that is what gets compared. One pass, so
+ * `&amp;quot;` stays `&quot;`.
+ */
+function decodeAttribute(value: string): string {
+  return value.replace(/&(amp|quot|lt|gt|#39|#x27);/g, (entity, name: string) => {
+    return ENTITIES[name] ?? entity
+  })
+}
+
 /**
  * Reads a meta tag out of the prerendered HTML, which is all a link preview ever sees — a
  * crawler does not run the page, so whatever the build wrote into the markup is the whole
@@ -16,7 +36,8 @@ function meta(html: string, key: string): string | undefined {
     if (!tag.includes(`="${key}"`)) {
       continue
     }
-    return /content="([^"]*)"/.exec(tag)?.[1]
+    const content = /content="([^"]*)"/.exec(tag)?.[1]
+    return content === undefined ? undefined : decodeAttribute(content)
   }
   return undefined
 }

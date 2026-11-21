@@ -143,8 +143,11 @@ test.describe('stepping through the wall', () => {
   })
 
   test('a tag filters the wall and goes back there', async ({ page }) => {
-    const tag = SECOND.tags[0]!
-    const expected = LOOPS.filter((loop) => loop.tags.includes(tag)).length
+    // The filter matches every spelling of the tag, so the expectation folds case as well.
+    const tag = SECOND.tags[0]!.toLowerCase()
+    const expected = LOOPS.filter((loop) =>
+      loop.tags.some((entry) => entry.toLowerCase() === tag),
+    ).length
     await openLoop(page, SECOND.id)
 
     await page.locator('.detail__tag').first().click()
