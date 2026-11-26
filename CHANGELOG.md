@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/IT4Change/dornsloops/compare/1.8.0...1.9.0) (2026-11-26)
+
+
+### Features
+
+* **content:** add loop 7218047 "tanzi machen" ([#64](https://github.com/IT4Change/dornsloops/issues/64)) ([93eb02e](https://github.com/IT4Change/dornsloops/commit/93eb02eb4b71041dafd1f6a8a3aed7940e1bb0b4))
+
 ## [1.8.0](https://github.com/IT4Change/dornsloops/compare/1.7.0...1.8.0) (2026-11-21)
 
 
