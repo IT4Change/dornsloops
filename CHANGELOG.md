@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.9.1](https://github.com/IT4Change/dornsloops/compare/1.9.0...1.9.1) (2026-11-28)
+
+
+### Build System & Dependencies
+
+* **deps:** bump actions/create-github-app-token from 3.3.0 to 3.4.0 ([#66](https://github.com/IT4Change/dornsloops/issues/66)) ([18e4dd6](https://github.com/IT4Change/dornsloops/commit/18e4dd66862b220d9dcd6fdd36ac30f0c0b57ac8))
+* **deps:** bump amannn/action-semantic-pull-request from 6.1.2 to 6.1.4 ([#67](https://github.com/IT4Change/dornsloops/issues/67)) ([d9cf7bb](https://github.com/IT4Change/dornsloops/commit/d9cf7bb7f5944cf42f8b1d61149b2096645f4f8e))
+
 ## [1.9.0](https://github.com/IT4Change/dornsloops/compare/1.8.0...1.9.0) (2026-11-26)
 
 
